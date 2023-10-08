@@ -47,4 +47,19 @@ config ZYNQMP_IPI
 	help
 	  This enables support for the Xilinx ZynqMP Inter Processor Interrupt
 	  communication controller.
+
+config ARM_PL320_MAILBOX
+       bool "Enable ARM PL320 mailbox controller support"
+       depends on DM_MAILBOX
+       help
+         PL320 mailbox used as Inter processor Interrupt communication
+          controller.
+
+config ARM_PL320_MAILBOX_TEST
+       bool "Enable ARM PL320 mailbox controller test"
+       default n 
+       depends on DM_MAILBOX && ARM_PL320_MAILBOX
+       help
+         PL320 mailbox Test module.
+
 endmenu

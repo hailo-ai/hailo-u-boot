@@ -766,6 +766,11 @@ config ARCH_OMAP2PLUS
 	imply TI_SYSC if DM && OF_CONTROL
 	imply FIT
 
+config ARCH_HAILO
+	bool "Hailo SoCs"
+	help
+	  Support for the SoCs developed by Hailo.
+
 config ARCH_MESON
 	bool "Amlogic Meson"
 	select GPIO_EXTRA_HEADER
@@ -2103,6 +2108,8 @@ source "arch/arm/mach-orion5x/Kconfig"
 source "arch/arm/mach-owl/Kconfig"
 
 source "arch/arm/mach-rmobile/Kconfig"
+
+source "arch/arm/mach-hailo/Kconfig"
 
 source "arch/arm/mach-meson/Kconfig"
 

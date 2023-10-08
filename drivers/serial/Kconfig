@@ -29,6 +29,7 @@ config REQUIRE_SERIAL_CONSOLE
 	# Running without a serial console is not supported by the
 	# non-dm serial code
 	depends on DM_SERIAL
+	depends on !MACH_HAILO15
 	default y
 	help
 	  Require a serial port for the console, and panic if none is found

@@ -18,13 +18,15 @@
 #include <image.h>
 #include <linux/libfdt.h>
 
-static int fat_registered;
+static struct blk_desc *registered_block_dev;
+static int registered_partition;
 
 static int spl_register_fat_device(struct blk_desc *block_dev, int partition)
 {
 	int err = 0;
 
-	if (fat_registered)
+	if (registered_block_dev == block_dev &&
+	    registered_partition == partition)
 		return err;
 
 	err = fat_register_device(block_dev, partition);
@@ -35,7 +37,8 @@ static int spl_register_fat_device(struct blk_desc *block_dev, int partition)
 		return err;
 	}
 
-	fat_registered = 1;
+	registered_block_dev = block_dev;
+	registered_partition = partition;
 
 	return err;
 }

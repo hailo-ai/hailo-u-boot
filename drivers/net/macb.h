@@ -7,7 +7,9 @@
 
 #define MACB_GREGS_NBR 16
 #define MACB_GREGS_VERSION 2
-#define MACB_MAX_QUEUES 8
+#define MACB_MAX_QUEUES 16
+#define MACB_SEGMENTS_NUM 16
+#define MACB_LOWER_SEGMENTS_NUM 8
 
 /* MACB register offsets */
 #define MACB_NCR		0x0000 /* Network Control */
@@ -160,6 +162,10 @@
 /* Screener Type 2 match registers */
 #define GEM_SCRT2		0x540
 
+/* Segment queue allocator */
+#define GEM_SEG_ALLOC_LOWER		0x5a0
+#define GEM_SEG_ALLOC_UPPER		0x5a4
+
 /* EtherType registers */
 #define GEM_ETHT		0x06E0
 
@@ -181,7 +187,7 @@
 #define GEM_ISR(hw_q)		(0x0400 + ((hw_q) << 2))
 #define GEM_TBQP(hw_q)		(0x0440 + ((hw_q) << 2))
 #define GEM_TBQPH(hw_q)		(0x04C8)
-#define GEM_RBQP(hw_q)		(0x0480 + ((hw_q) << 2))
+#define GEM_RBQP(hw_q)		((hw_q <= 6) ? (0x0480 + ((hw_q) << 2)) : (0x05C0 + ((hw_q - 7) << 2)))
 #define GEM_RBQS(hw_q)		(0x04A0 + ((hw_q) << 2))
 #define GEM_RBQPH(hw_q)		(0x04D4)
 #define GEM_IER(hw_q)		(0x0600 + ((hw_q) << 2))

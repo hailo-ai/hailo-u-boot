@@ -349,7 +349,9 @@ WEAK(lowlevel_init)
 #ifdef CONFIG_GICV2
 	ldr	x0, =GICC_BASE
 #endif
+#ifndef CONFIG_TARGET_HAILO15_VP
 	bl	gic_wait_for_interrupt
+#endif
 #endif
 
 	/*
@@ -379,7 +381,9 @@ WEAK(smp_kick_all_cpus)
 	/* Kick secondary cpus up by SGI 0 interrupt */
 #if defined(CONFIG_GICV2) || defined(CONFIG_GICV3)
 	ldr	x0, =GICD_BASE
+#ifndef CONFIG_TARGET_HAILO15_VP
 	b	gic_kick_secondary_cpus
+#endif
 #endif
 	ret
 ENDPROC(smp_kick_all_cpus)

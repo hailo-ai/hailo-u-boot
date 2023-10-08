@@ -44,6 +44,10 @@ communication channel for a particular protocol, the 3 properties namely:
 mboxes, mbox-names and shmem shall be present in the sub-node corresponding
 to that protocol.
 
+- fw-ver: Optional firmware version. If set, the firmware
+	version will be validated against the implementation version
+	received by the base protocol's DISCOVER_IMPLEMENT_VERSION command.
+
 Clock/Performance bindings for the clocks/OPPs based on SCMI Message Protocol
 ------------------------------------------------------------
 

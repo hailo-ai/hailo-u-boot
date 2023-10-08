@@ -782,6 +782,18 @@ config MMC_MTK
 	  This is needed if support for any SD/SDIO/MMC devices is required.
 	  If unsure, say N.
 
+config MMC_SDHCI_SNPS
+       bool "Synopsis DesignWare Cores Mobile Storage Controller support"
+       depends on DM_MMC
+       depends on MMC_SDHCI
+       help
+         This selects Synopsys DesignWare Cores Mobile Storage Controller
+         support.
+         If you have a controller with this interface,
+         say Y here.
+
+         If unsure, say N.
+
 endif
 
 config FSL_ESDHC

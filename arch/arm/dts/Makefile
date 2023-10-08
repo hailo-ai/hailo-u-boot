@@ -1163,6 +1163,14 @@ dtb-$(CONFIG_TARGET_IMX8MM_CL_IOT_GATE_OPTEE) += imx8mm-cl-iot-gate-optee.dtb
 
 dtb-$(CONFIG_TARGET_EA_LPC3250DEVKITV2) += lpc3250-ea3250.dtb
 
+dtb-$(CONFIG_TARGET_HAILO15_GINGER_SOC) += hailo15-ginger-soc.dtb
+dtb-$(CONFIG_TARGET_HAILO15_GINGER_SOC_SDIO0) += hailo15-ginger-soc-sdio0.dtb
+dtb-$(CONFIG_TARGET_HAILO15_LAVENDER) += hailo15-lavender.dtb
+dtb-$(CONFIG_TARGET_HAILO15_VELOCE) += hailo15-veloce.dtb
+dtb-$(CONFIG_TARGET_HAILO15_VP) += hailo15-vp.dtb
+dtb-$(CONFIG_TARGET_HAILO15_EVB_2_CAMERA_VPU) += hailo15-evb-2-camera-vpu.dtb
+dtb-$(CONFIG_TARGET_HAILO15_EVB_SECURITY_CAMERA) += hailo15-evb-security-camera.dtb
+dtb-$(CONFIG_TARGET_HAILO15_SBC) += hailo15-sbc.dtb
 targets += $(dtb-y)
 
 # Add any required device tree compiler flags here

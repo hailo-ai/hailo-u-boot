@@ -813,6 +813,13 @@ endmenu
 
 menu "Device access commands"
 
+config CMD_HAILO_DBG
+	bool "hailo debug commands"
+	default n
+	depends on ARCH_HAILO && (DM_MAILBOX || DM_RESET)
+	help
+	  Enable Hailo debug commands.
+
 config CMD_ARMFLASH
 	#depends on FLASH_CFI_DRIVER
 	bool "armflash"

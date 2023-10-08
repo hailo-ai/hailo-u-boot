@@ -460,6 +460,7 @@ config BOARD_TYPES
 config DISPLAY_CPUINFO
 	bool "Display information about the CPU during start up"
 	default y if ARC|| ARM || NIOS2 || X86 || XTENSA || M68K
+	depends on !MACH_HAILO15
 	help
 	  Display information about the CPU that U-Boot is running on
 	  when U-Boot starts up. The function print_cpuinfo() is called

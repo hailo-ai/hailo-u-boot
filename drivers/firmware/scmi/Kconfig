@@ -17,3 +17,10 @@ config SCMI_FIRMWARE
 	  based on message exchange. Messages can be exchange over tranport
 	  channels as a mailbox device or an Arm SMCCC service with some
 	  piece of identified shared memory.
+
+config SCMI_BASE
+	bool "Enable SCMI base-protocol support"
+	depends on SCMI_FIRMWARE
+	help
+	  Support base protocol functionality of SCMI.
+	  Needed only for querying firmware version.

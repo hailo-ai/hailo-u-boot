@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * dts file for Hailo15 SoC
+ *
+ * Copyright (c) 2019-2023 Hailo Technologies Ltd. All rights reserved.
+ */
+
+#include "hailo15-base.dtsi"
+
+/ {
+    mclk: mclk {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <0>; // VP does not have a clock-freq for mmc
+    };
+
+    mmc0: mmci@78405000 {
+        compatible = "arm,pl180", "arm,primecell";
+        reg = <0 0x78405000 0 0x1000>;
+        clocks = <&mclk>;
+        clock-names = "mclk";
+    };
+};

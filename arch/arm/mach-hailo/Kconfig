@@ -1,0 +1,210 @@
+if ARCH_HAILO
+
+config SYS_ARCH
+	default "arm"
+
+config SYS_SOC
+	default "hailo"
+
+config MACH_HAILO15
+	bool "Hailo15 SoC"
+	select MISC_INIT_R
+	select SCMI_BASE
+	select SUPPORT_SPL
+	select ARM64
+	select ARMV8_MULTIENTRY
+	select SYS_NS16550
+	select DM
+	select DM_SERIAL
+	select PRE_CONSOLE_BUFFER
+	select SILENT_CONSOLE
+	select FIT
+	select DM_SPI
+	select DM_SPI_FLASH
+	select OF_CONTROL
+	select SPI
+	select SPI_FLASH
+	select CADENCE_QSPI
+	select DM_ETH
+	select MACB
+	select DM_MMC
+	select MMC_SDHCI
+	select MMC_SDHCI_SNPS
+	select MMC_SDHCI_ADMA
+	select DM_GPIO
+	select CLK
+	select CLK_SCMI
+	select FIRMWARE
+	select SCMI_FIRMWARE
+	select DM_RESET
+	select RESET_SCMI
+	select DM_MAILBOX
+	select ARM_PL320_MAILBOX
+	select ENV_IS_IN_SPI_FLASH
+	select PRINTF
+	select PANIC_HANG
+	select OF_LIBFDT
+	select EFI_PARTITION
+	select PINCONF
+	select PINCTRL
+	select PINCTRL_HAILO15
+	select SPL
+	select SPL_DM
+	select SPL_DM_MAILBOX
+	select SPL_LIBCOMMON_SUPPORT
+	select SPL_LIBGENERIC_SUPPORT
+	select SPL_OF_CONTROL
+	select SPL_SERIAL
+	select SPL_FRAMEWORK_BOARD_INIT_F
+	select SPL_CLK
+	select SPL_DM_RESET
+	select SPL_FIRMWARE
+	select SPL_OF_TRANSLATE
+	select SPL_SEPARATE_BSS
+	select SPL_ENV_SUPPORT
+	select SPL_ENV_IS_IN_SPI_FLASH
+	select SPL_DM_SPI
+	select SPL_DM_SPI_FLASH
+	select SPL_SPI
+	select SPL_SPI_FLASH_SUPPORT
+	select SPL_DM_SEQ_ALIAS
+	select SPL_EFI_PARTITION
+	select SPL_ATF
+	select SPL_LOAD_FIT
+	select SPL_FIT_SIGNATURE
+	select FIT_SIGNATURE
+	select SYS_RESET_SCTRL # TODO: understand why this
+	select TFABOOT
+	select WATCHDOG
+	select SPL_WDT
+	select WDT
+	select WDT_SP805
+	imply CMD_DM
+	imply CMD_SF
+	imply CMD_NET
+	imply CMD_GPT
+	imply NET_RANDOM_ETHADDR
+	imply CMD_PING
+	imply CMD_DHCP
+	imply CMD_PCAP
+	imply CMD_MMC
+	imply CMD_FAT
+	imply CMD_WDT
+	imply FS_FAT
+	imply FAT_WRITE
+	imply CMD_BOOTMENU
+	imply MENU
+	imply AUTOBOOT_MENU_SHOW
+	imply CMD_MEMTEST
+	imply CMD_MII
+	imply CMD_PART
+	imply HUSH_PARSER
+	imply AUTOBOOT
+	imply SPL_DM_MMC
+	imply SPL_MMC
+	imply SPL_FS_FAT
+	imply SPL_YMODEM_SUPPORT
+
+if MACH_HAILO15
+config PRE_CON_BUF_ADDR
+	default 0x84000000
+
+config SYS_LOAD_ADDR
+	default 0x83000000
+
+config SYS_TEXT_BASE
+	default 0x83000000
+
+config SYS_MALLOC_LEN
+	default 0x81f000
+
+config SYS_MALLOC_F_LEN
+	default 0x10000
+
+config ENV_OFFSET
+	default 0x50000
+
+config ENV_SECT_SIZE
+	default 0x4000
+
+config ENV_SIZE
+	default 0x4000
+
+config SPL_TEXT_BASE
+	default 0x801D4000
+
+config SPL_SIZE_LIMIT
+	default 0x2C000
+
+config SPL_SYS_MALLOC_F_LEN
+	default 0x81f000
+
+config SPL_SIZE_LIMIT_PROVIDE_STACK
+	default 0
+
+config SYS_PROMPT
+	default "hailo15# "
+
+config HAILO15_DDR_ENABLE_ECC
+	bool "Hailo15 DDR enable ECC"
+
+config NR_DRAM_BANKS
+	default 2 if HAILO15_DDR_ENABLE_ECC
+	default 1 if !HAILO15_DDR_ENABLE_ECC
+
+config HAILO15_SWUPDATE
+	bool "Hailo15 SWUpdate support"
+	select SUPPORT_RAW_INITRD
+
+config SPL_OF_LIBFDT_ASSUME_MASK
+	default 0
+
+endif
+
+config TARGET_HAILO15_VP
+	bool "Hailo15 VP"
+	select MACH_HAILO15
+
+config TARGET_HAILO15_GINGER_SOC
+	bool "Hailo15 Ginger Soc"
+	select MACH_HAILO15
+
+config TARGET_HAILO15_GINGER_SOC_SDIO0
+	bool "Hailo15 Ginger Soc sdio0"
+	select MACH_HAILO15
+
+config TARGET_HAILO15_GINGER_IMAGING
+	bool "Hailo15 Ginger Imaging"
+	select MACH_HAILO15
+
+config TARGET_HAILO15_LAVENDER
+	bool "Hailo15 Lavender"
+	select MACH_HAILO15
+
+config TARGET_HAILO15_VELOCE
+	bool "Hailo15 VELOCE"
+	select MACH_HAILO15
+
+config TARGET_HAILO15_EVB_2_CAMERA_VPU
+	bool "Hailo15 EVB 2 Camera VPU"
+	select MACH_HAILO15
+
+config TARGET_HAILO15_EVB_SECURITY_CAMERA
+	bool "Hailo15 EVB Security Camera"
+	select MACH_HAILO15
+
+config TARGET_HAILO15_SBC
+	bool "Hailo15 SBC"
+	select MACH_HAILO15
+
+
+source "board/hailo/hailo15-vp/Kconfig"
+source "board/hailo/hailo15-ginger-soc/Kconfig"
+source "board/hailo/hailo15-ginger-soc-sdio0/Kconfig"
+source "board/hailo/hailo15-lavender/Kconfig"
+source "board/hailo/hailo15-veloce/Kconfig"
+source "board/hailo/hailo15-evb-2-camera-vpu/Kconfig"
+source "board/hailo/hailo15-evb-security-camera/Kconfig"
+source "board/hailo/hailo15-sbc/Kconfig"
+
+endif

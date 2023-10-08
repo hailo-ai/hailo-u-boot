@@ -91,6 +91,9 @@ int scmi_write_msg_to_smt(struct udevice *dev, struct scmi_smt *smt,
 			  SMT_HEADER_MESSAGE_TYPE(0) |
 			  SMT_HEADER_PROTOCOL_ID(msg->protocol_id) |
 			  SMT_HEADER_MESSAGE_ID(msg->message_id);
+#ifdef CONFIG_ARCH_HAILO
+	hdr->flags |= SCMI_SHMEM_FLAG_INTR_ENABLED;
+#endif
 
 	memcpy_toio(hdr->msg_payload, msg->in_msg, msg->in_msg_sz);
 

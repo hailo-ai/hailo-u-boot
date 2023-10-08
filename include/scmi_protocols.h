@@ -41,6 +41,29 @@ enum scmi_status_code {
 };
 
 /*
+ * SCMI Base Protocol
+ */
+ enum scmi_base_message_id {
+	SCMI_BASE_DISCOVER_IMPLEMENTATION_VERSION = 0x5
+};
+
+ /**
+ * struct scmi_base_discover_implementation_version_in - Message payload for BASE_DISCOVER_IMPLEMENTATION_VERSION command
+ */
+struct scmi_base_discover_implementation_version_in {
+};
+
+/**
+ * struct scmi_base_discover_implementation_version_out - Response payload for BASE_DISCOVER_IMPLEMENTATION_VERSION command
+ * @status:	SCMI command status
+ * @implementation_version:	implementation version number
+ */
+struct scmi_base_discover_implementation_version_out {
+	u32 status;
+	u32 implementation_version;
+};
+
+/*
  * SCMI Clock Protocol
  */
 

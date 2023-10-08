@@ -67,7 +67,7 @@ int scmi_mbox_probe(struct udevice *dev)
 	struct scmi_mbox_channel *chan = dev_get_priv(dev);
 	int ret;
 
-	chan->timeout_us = TIMEOUT_US_10MS;
+	chan->timeout_us = dev_read_u32_default(dev, "scmi_timeout", TIMEOUT_US_10MS);
 
 	ret = mbox_get_by_index(dev, 0, &chan->mbox);
 	if (ret) {

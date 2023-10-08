@@ -1,0 +1,16 @@
+if TARGET_HAILO15_SBC
+
+config SYS_BOARD
+	default "hailo15-sbc"
+
+config SYS_VENDOR
+	default "hailo"
+
+config SYS_CONFIG_NAME
+	default "hailo15-sbc"
+	help
+	  This option contains information about board configuration name.
+	  Based on this option include/configs/<CONFIG_SYS_CONFIG_NAME>.h header
+	  will be used for board configuration.
+
+endif

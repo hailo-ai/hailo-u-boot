@@ -1,0 +1,7 @@
+CONFIG_ARM=y
+CONFIG_ARCH_HAILO=y
+CONFIG_TARGET_HAILO15_VELOCE=y
+CONFIG_DEFAULT_DEVICE_TREE="hailo15-veloce"
+CONFIG_USE_BOOTCOMMAND=y
+CONFIG_BOOTCOMMAND="setenv bootargs console=ttyS0,115200n8 earlyprintk earlycon loglevel=8 rootwait debug root=/dev/mtdblock2; bootm 80101000"
+CONFIG_AUTOBOOT=n

@@ -14,6 +14,7 @@
 #include <asm/io.h>
 #include <mmc.h>
 #include <asm/gpio.h>
+#include <linux/kernel.h>
 
 /*
  * Controller registers
@@ -250,12 +251,14 @@
 
 /* to make gcc happy */
 struct sdhci_host;
+struct sdhci_adma_desc;
 
 /*
  * Host SDMA buffer boundary. Valid values from 4K to 512K in powers of 2.
  */
 #define SDHCI_DEFAULT_BOUNDARY_SIZE	(512 * 1024)
 #define SDHCI_DEFAULT_BOUNDARY_ARG	(7)
+typedef void (* sdhci_adma_desc_func_t)(struct sdhci_adma_desc **desc, dma_addr_t addr, u16 len, bool end);
 struct sdhci_ops {
 #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
 	u32	(*read_l)(struct sdhci_host *host, int reg);
@@ -272,6 +275,8 @@ struct sdhci_ops {
 	int (*platform_execute_tuning)(struct mmc *host, u8 opcode);
 	int (*set_delay)(struct sdhci_host *host);
 	int	(*deferred_probe)(struct sdhci_host *host);
+	void (*set_clock_dividier)(struct sdhci_host *host, u32 clock, u32 *div);
+	sdhci_adma_desc_func_t sdhci_adma_desc;
 };
 
 #define ADMA_MAX_LEN	65532
@@ -280,8 +285,7 @@ struct sdhci_ops {
 #else
 #define ADMA_DESC_LEN	8
 #endif
-#define ADMA_TABLE_NO_ENTRIES (CONFIG_SYS_MMC_MAX_BLK_COUNT * \
-			       MMC_MAX_BLOCK_LEN) / ADMA_MAX_LEN
+#define ADMA_TABLE_NO_ENTRIES (DIV_ROUND_UP(MMC_MAX_BYTES_READ, ADMA_MAX_LEN))
 
 #define ADMA_TABLE_SZ (ADMA_TABLE_NO_ENTRIES * ADMA_DESC_LEN)
 
@@ -337,6 +341,7 @@ struct sdhci_host {
 #if CONFIG_IS_ENABLED(MMC_SDHCI_ADMA)
 	struct sdhci_adma_desc *adma_desc_table;
 #endif
+	uint adma_desc_table_extra_desc;
 };
 
 #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
@@ -507,8 +512,20 @@ extern const struct dm_mmc_ops sdhci_ops;
 #else
 #endif
 
-struct sdhci_adma_desc *sdhci_adma_init(void);
-void sdhci_prepare_adma_table(struct sdhci_adma_desc *table,
-			      struct mmc_data *data, dma_addr_t addr);
+void sdhci_adma_desc(struct sdhci_adma_desc **desc,
+			    dma_addr_t addr, u16 len, bool end);
 
+struct sdhci_adma_desc *__sdhci_adma_init(uint extra_desc);
+static inline struct sdhci_adma_desc *sdhci_adma_init(void)
+{
+    return __sdhci_adma_init(0);
+}
+
+void __sdhci_prepare_adma_table(struct sdhci_adma_desc *table,
+                  struct mmc_data *data, dma_addr_t addr, sdhci_adma_desc_func_t desc_func);
+static inline void sdhci_prepare_adma_table(struct sdhci_adma_desc *table,
+                  struct mmc_data *data, dma_addr_t addr)
+{
+    __sdhci_prepare_adma_table(table, data, addr, sdhci_adma_desc);
+}
 #endif /* __SDHCI_HW_H */

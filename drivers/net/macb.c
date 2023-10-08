@@ -9,6 +9,7 @@
 #include <log.h>
 #include <asm/global_data.h>
 #include <linux/delay.h>
+#include <dm/of_extra.h>
 
 /*
  * The u-boot networking stack is a little weird.  It seems like the
@@ -44,6 +45,7 @@
 #include <linux/dma-mapping.h>
 #include <asm/arch/clk.h>
 #include <linux/errno.h>
+#include <linux/log2.h>
 
 #include "macb.h"
 
@@ -97,6 +99,9 @@ struct macb_dma_desc_64 {
 #define MACB_TX_DMA_DESC_SIZE	(DMA_DESC_BYTES(MACB_TX_RING_SIZE))
 #define MACB_RX_DMA_DESC_SIZE	(DMA_DESC_BYTES(MACB_RX_RING_SIZE))
 #define MACB_TX_DUMMY_DMA_DESC_SIZE	(DMA_DESC_BYTES(1))
+
+#define DESC_PER_CACHELINE_32	(ARCH_DMA_MINALIGN/sizeof(struct macb_dma_desc))
+#define DESC_PER_CACHELINE_64	(ARCH_DMA_MINALIGN/DMA_DESC_SIZE)
 
 #define RXBUF_FRMLEN_MASK	0x00000fff
 #define TXBUF_FRMLEN_MASK	0x000007ff
@@ -159,10 +164,20 @@ struct macb_config {
 
 	int			(*clk_init)(struct udevice *dev, ulong rate);
 	const struct macb_usrio_cfg	*usrio;
+
+	unsigned long queue_mask;
+	bool disable_queues_at_halt;
+	bool disable_queues_at_init;
+	bool allocate_segments_equally;
+	bool disable_clocks_at_stop;
 };
 
 #ifndef CONFIG_DM_ETH
 #define to_macb(_nd) container_of(_nd, struct macb_device, netdev)
+#endif
+
+#ifdef CONFIG_CLK
+	static int macb_enable_clk(struct udevice *dev);
 #endif
 
 static int macb_is_gem(struct macb_device *macb)
@@ -401,32 +416,56 @@ static int _macb_send(struct macb_device *macb, const char *name, void *packet,
 	return 0;
 }
 
+static void reclaim_rx_buffer(struct macb_device *macb,
+			      unsigned int idx)
+{
+	unsigned int mask;
+	unsigned int shift;
+	unsigned int i;
+
+	/*
+	 * There may be multiple descriptors per CPU cacheline,
+	 * so a cache flush would flush the whole line, meaning the content of other descriptors
+	 * in the cacheline would also flush. If one of the other descriptors had been
+	 * written to by the controller, the flush would cause those changes to be lost.
+	 *
+	 * To circumvent this issue, we do the actual freeing only when we need to free
+	 * the last descriptor in the current cacheline. When the current descriptor is the
+	 * last in the cacheline, we free all the descriptors that belong to that cacheline.
+	 */
+	if (macb->config->hw_dma_cap & HW_DMA_CAP_64B) {
+		mask = DESC_PER_CACHELINE_64 - 1;
+		shift = 1;
+	} else {
+		mask = DESC_PER_CACHELINE_32 - 1;
+		shift = 0;
+	}
+
+	/* we exit without freeing if idx is not the last descriptor in the cacheline */
+	if ((idx & mask) != mask)
+		return;
+
+	for (i = idx & (~mask); i <= idx; i++)
+		macb->rx_ring[i << shift].addr &= ~MACB_BIT(RX_USED);
+}
+
 static void reclaim_rx_buffers(struct macb_device *macb,
 			       unsigned int new_tail)
 {
 	unsigned int i;
-	unsigned int count;
 
 	i = macb->rx_tail;
 
 	macb_invalidate_ring_desc(macb, RX);
 	while (i > new_tail) {
-		if (macb->config->hw_dma_cap & HW_DMA_CAP_64B)
-			count = i * 2;
-		else
-			count = i;
-		macb->rx_ring[count].addr &= ~MACB_BIT(RX_USED);
+		reclaim_rx_buffer(macb, i);
 		i++;
-		if (i > MACB_RX_RING_SIZE)
+		if (i >= MACB_RX_RING_SIZE)
 			i = 0;
 	}
 
 	while (i < new_tail) {
-		if (macb->config->hw_dma_cap & HW_DMA_CAP_64B)
-			count = i * 2;
-		else
-			count = i;
-		macb->rx_ring[count].addr &= ~MACB_BIT(RX_USED);
+		reclaim_rx_buffer(macb, i);
 		i++;
 	}
 
@@ -608,6 +647,52 @@ static int macb_sama7g5_clk_init(struct udevice *dev, ulong rate)
 	return clk_enable(&clk);
 }
 
+static int macb_hailo15_clk_init(struct udevice *dev, ulong rate)
+{
+	struct clk clk;
+	int ret;
+	uint32_t tx_shift_value = 0;
+	uint32_t rx_shift_value = 0;
+
+	uintptr_t top_config_clock_conf_reg = 0;
+	uint32_t top_config_clock_conf_value = 0;
+
+	uint32_t tx_clock_delay = dev_read_u32_default(dev, "hailo,tx-clock-delay", 0);
+	uint8_t tx_clock_inversion = (uint8_t)dev_read_bool(dev, "hailo,tx-clock-inversion");
+	// Bypass if any value is different from default
+	uint32_t tx_bypass_clock_delay = (tx_clock_delay != 0) || tx_clock_inversion;
+	
+	uint32_t rx_clock_delay = dev_read_u32_default(dev, "hailo,rx-clock-delay", 0);
+	uint32_t rx_clock_inversion = (uint8_t)dev_read_bool(dev, "hailo,rx-clock-inversion");
+	// Bypass if any value is different from default
+	uint32_t rx_bypass_clock_delay = (rx_clock_delay != 0) || rx_clock_inversion;
+
+	// Assign delay directly to top config
+	top_config_clock_conf_reg = (uintptr_t)dev_remap_addr_name(dev, "top_config_clock_conf");
+	// Structure: tx_clock_delay(clock_conf[9:7]), tx_clock_inversion(clock_conf[6]), tx_bypass_clock_delay(clock_conf[5])
+	tx_shift_value = ((tx_clock_delay & 7) << 2 | (tx_clock_inversion & 1) << 1  | (tx_bypass_clock_delay & 1) << 0) << 5; 
+	// Structure: rx_clock_delay(clock_conf[4:2]), rx_clock_inversion(clock_conf[1]), rx_bypass_clock_delay(clock_conf[0])
+	rx_shift_value = ((rx_clock_delay & 7) << 2 | (rx_clock_inversion & 1) << 1  | (rx_bypass_clock_delay & 1) << 0) << 0; 
+
+	// Remove bits [9:0] (0x3ff) from reg and assign new values
+	top_config_clock_conf_value = tx_shift_value | rx_shift_value | (readl(top_config_clock_conf_reg) & (~0x3ff));
+	writel(top_config_clock_conf_value, top_config_clock_conf_reg);
+
+	ret = clk_get_by_name(dev, "pclk", &clk);
+	if (ret)
+		return ret;
+
+	ret = clk_enable(&clk);
+	if (ret)
+		return ret;
+
+	ret = clk_get_by_name(dev, "hclk", &clk);
+	if (ret)
+		return ret;
+
+	return clk_enable(&clk);
+}
+
 int __weak macb_linkspd_cb(struct udevice *dev, unsigned int speed)
 {
 #ifdef CONFIG_CLK
@@ -658,6 +743,53 @@ int __weak macb_linkspd_cb(void *regs, unsigned int speed)
 }
 #endif
 
+#ifdef CONFIG_PHY_FIXED
+#ifdef CONFIG_DM_ETH
+static int macb_fixed_phy_init(struct udevice *dev)
+#else
+static int macb_fixed_phy_init(struct macb_device *macb)
+#endif
+{
+#ifdef CONFIG_DM_ETH
+	struct macb_device *macb = dev_get_priv(dev);
+	ofnode node = dev_ofnode(dev), subnode;
+#else
+	ofnode node = dev_ofnode(&macb->netdev), subnode;
+#endif
+	uint32_t speed = 10, ncfgr=0, ret;
+	bool duplex = false;
+
+	ofnode_phy_is_fixed_link(node, &subnode);
+	/* if no speed specified use 10Mb/s, if no duplex specified us half duplex*/
+	ofnode_read_u32(subnode, "speed", &speed);
+	duplex = ofnode_read_bool(subnode, "full-duplex");
+
+	ncfgr = macb_readl(macb, NCFGR);
+	ncfgr &= ~(MACB_BIT(SPD) | MACB_BIT(FD) | GEM_BIT(GBE));
+
+	if (speed == _1000BASET)
+		ncfgr |= GEM_BIT(GBE);
+
+	if (speed == _100BASET)
+		ncfgr |= MACB_BIT(SPD);
+
+	if (duplex)
+		ncfgr |= MACB_BIT(FD);
+
+	macb_writel(macb, NCFGR, ncfgr);
+
+#ifdef CONFIG_DM_ETH
+	ret = macb_linkspd_cb(dev, speed);
+#else
+	ret = macb_linkspd_cb(macb->regs, speed);
+#endif
+	if (ret)
+		return ret;
+
+	return 0;
+}
+#endif
+
 #ifdef CONFIG_DM_ETH
 static int macb_phy_init(struct udevice *dev, const char *name)
 #else
@@ -701,6 +833,14 @@ static int macb_phy_init(struct macb_device *macb, const char *name)
 	}
 
 	phy_config(macb->phydev);
+#endif
+
+#ifdef CONFIG_PHY_FIXED
+#ifdef CONFIG_DM_ETH
+	return macb_fixed_phy_init(dev);
+#else
+	return macb_fixed_phy_init(macb);
+#endif
 #endif
 
 	status = macb_mdio_read(macb, macb->phy_addr, MII_BMSR);
@@ -808,9 +948,21 @@ static int gmac_init_multi_queues(struct macb_device *macb)
 	int i, num_queues = 1;
 	u32 queue_mask;
 	unsigned long paddr;
+	int seg_alloc_lower = 0, seg_alloc_upper = 0, seg_per_queue = 0; 
+
+	if (macb->config->disable_queues_at_init) {
+		/* disable all queues first */
+		for (i = 1; i < MACB_MAX_QUEUES; i++){
+			gem_writel_queue_TBQP(macb, 1, i - 1);
+			gem_writel_queue_RBQP(macb, 1, i - 1);
+		}
+	}
 
 	/* bit 0 is never set but queue 0 always exists */
-	queue_mask = gem_readl(macb, DCFG6) & 0xff;
+	queue_mask = gem_readl(macb, DCFG6) & 0xffff;
+	if (macb->config->queue_mask) {
+		queue_mask &= macb->config->queue_mask;
+	}
 	queue_mask |= 0x1;
 
 	for (i = 1; i < MACB_MAX_QUEUES; i++)
@@ -823,7 +975,13 @@ static int gmac_init_multi_queues(struct macb_device *macb)
 			ALIGN(MACB_TX_DUMMY_DMA_DESC_SIZE, PKTALIGN));
 	paddr = macb->dummy_desc_dma;
 
+	/* round down the value, such that we won't overflow num of segments */ 
+	seg_per_queue = ilog2(MACB_SEGMENTS_NUM / num_queues);
+
 	for (i = 1; i < num_queues; i++) {
+		if (!(queue_mask & (1 << i))) {
+			continue;
+		}
 		gem_writel_queue_TBQP(macb, lower_32_bits(paddr), i - 1);
 		gem_writel_queue_RBQP(macb, lower_32_bits(paddr), i - 1);
 		if (macb->config->hw_dma_cap & HW_DMA_CAP_64B) {
@@ -832,7 +990,22 @@ static int gmac_init_multi_queues(struct macb_device *macb)
 			gem_writel_queue_RBQPH(macb, upper_32_bits(paddr),
 					       i - 1);
 		}
+
+		/* segments allocator divided between 2 registers (lower - queues 0-7, upper queues 8-15)
+		   number of segments per queue is configured in 4 bits (3 bits configured as log2 of segments number + 1 reserved bit) */
+		if (i < MACB_LOWER_SEGMENTS_NUM) {
+			seg_alloc_lower |= seg_per_queue << (i * 4);
+		}
+		else {
+			seg_alloc_upper |= seg_per_queue << ((i - MACB_LOWER_SEGMENTS_NUM) * 4);
+		}
 	}
+
+	if (macb->config->allocate_segments_equally) {
+		gem_writel(macb, SEG_ALLOC_LOWER, seg_alloc_lower);
+		gem_writel(macb, SEG_ALLOC_UPPER, seg_alloc_upper);
+	}
+
 	return 0;
 }
 
@@ -1023,6 +1196,7 @@ static int _macb_init(struct macb_device *macb, const char *name)
 static void _macb_halt(struct macb_device *macb)
 {
 	u32 ncr, tsr;
+	int i;
 
 	/* Halt the controller and wait for any ongoing transmission to end. */
 	ncr = macb_readl(macb, NCR);
@@ -1035,6 +1209,14 @@ static void _macb_halt(struct macb_device *macb)
 
 	/* Disable TX and RX, and clear statistics */
 	macb_writel(macb, NCR, MACB_BIT(CLRSTAT));
+
+	/* disable queues */
+	if (macb->config->disable_queues_at_halt) {
+		macb_writel(macb, RBQP, 1);
+		macb_writel(macb, TBQP, 1);
+		for (i = 1; i < MACB_MAX_QUEUES; i++)
+			gem_writel_queue_TBQP(macb, 1, i - 1);
+	}
 }
 
 static int _macb_write_hwaddr(struct macb_device *macb, unsigned char *enetaddr)
@@ -1257,6 +1439,18 @@ int macb_eth_initialize(int id, void *regs, unsigned int phy_addr)
 
 static int macb_start(struct udevice *dev)
 {
+#ifdef CONFIG_CLK
+	struct macb_device *macb = dev_get_priv(dev);
+	int ret;
+
+	/* if we disabled clocks at halt, we should make sure to reopen pclk here */
+	if (macb->config->disable_clocks_at_stop){
+		ret = macb_enable_clk(dev);
+		if (ret)
+			return ret;
+	}
+#endif
+
 	return _macb_init(dev, dev->name);
 }
 
@@ -1289,8 +1483,18 @@ static int macb_free_pkt(struct udevice *dev, uchar *packet, int length)
 static void macb_stop(struct udevice *dev)
 {
 	struct macb_device *macb = dev_get_priv(dev);
+	struct clk clk;
 
 	_macb_halt(macb);
+
+	/* disable clocks */
+	if (macb->config->disable_clocks_at_stop) {
+		clk_get_by_name(dev, "pclk", &clk);
+		clk_disable(&clk);
+
+		clk_get_by_name(dev, "hclk", &clk);
+		clk_disable(&clk);
+	}
 }
 
 static int macb_write_hwaddr(struct udevice *dev)
@@ -1486,6 +1690,17 @@ static const struct macb_config sama7g5_emac_config = {
 	.usrio = &sama7g5_usrio,
 };
 
+static const struct macb_config hailo15_config = {
+	.hw_dma_cap = HW_DMA_CAP_64B,
+	.clk_init = macb_hailo15_clk_init,
+	.queue_mask = 3,
+	.disable_queues_at_halt = true,
+	.disable_queues_at_init  = true,
+	.allocate_segments_equally  = true,
+	.disable_clocks_at_stop  = true,
+	.usrio = &macb_default_usrio,
+};
+
 static const struct udevice_id macb_eth_ids[] = {
 	{ .compatible = "cdns,macb" },
 	{ .compatible = "cdns,at91sam9260-macb" },
@@ -1500,6 +1715,7 @@ static const struct udevice_id macb_eth_ids[] = {
 	{ .compatible = "cdns,zynq-gem" },
 	{ .compatible = "sifive,fu540-c000-gem",
 	  .data = (ulong)&sifive_config },
+	{ .compatible = "hailo,hailo15-gem", .data = (ulong)&hailo15_config },
 	{ }
 };
 

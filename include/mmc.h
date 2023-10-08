@@ -956,6 +956,7 @@ int mmc_get_env_dev(void);
 #ifndef CONFIG_SYS_MMC_MAX_BLK_COUNT
 #define CONFIG_SYS_MMC_MAX_BLK_COUNT 65535
 #endif
+#define MMC_MAX_BYTES_READ (CONFIG_SYS_MMC_MAX_BLK_COUNT * MMC_MAX_BLOCK_LEN)
 
 /**
  * mmc_get_blk_desc() - Get the block descriptor for an MMC device

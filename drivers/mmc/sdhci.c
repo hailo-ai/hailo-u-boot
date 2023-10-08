@@ -110,8 +110,12 @@ static void sdhci_prepare_dma(struct sdhci_host *host, struct mmc_data *data,
 	}
 #if CONFIG_IS_ENABLED(MMC_SDHCI_ADMA)
 	else if (host->flags & (USE_ADMA | USE_ADMA64)) {
-		sdhci_prepare_adma_table(host->adma_desc_table, data,
-					 host->start_addr);
+		if (host->ops && host->ops->sdhci_adma_desc)
+			__sdhci_prepare_adma_table(host->adma_desc_table, data,
+						 host->start_addr, host->ops->sdhci_adma_desc);
+		else
+			sdhci_prepare_adma_table(host->adma_desc_table, data,
+						 host->start_addr);
 
 		sdhci_writel(host, lower_32_bits(host->adma_addr),
 			     SDHCI_ADMA_ADDRESS);
@@ -433,7 +437,11 @@ int sdhci_set_clock(struct mmc *mmc, unsigned int clock)
 		}
 		div >>= 1;
 	}
-
+	
+	if (host->ops && host->ops->set_clock_dividier) {
+		host->ops->set_clock_dividier(host, clock, &div);
+	}
+	
 	if (host->ops && host->ops->set_clock)
 		host->ops->set_clock(host, div);
 
@@ -850,7 +858,7 @@ int sdhci_setup_cfg(struct mmc_config *cfg, struct sdhci_host *host,
 		       __func__);
 		return -EINVAL;
 	}
-	host->adma_desc_table = sdhci_adma_init();
+	host->adma_desc_table = __sdhci_adma_init(host->adma_desc_table_extra_desc);
 	host->adma_addr = (dma_addr_t)host->adma_desc_table;
 
 #ifdef CONFIG_DMA_ADDR_T_64BIT

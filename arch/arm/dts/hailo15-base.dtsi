@@ -1,0 +1,198 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * dts file for Hailo Hailo15 SoC
+ *
+ * Copyright (c) 2019-2023 Hailo Technologies Ltd. All rights reserved.
+ */
+
+/dts-v1/;
+
+#include <dt-bindings/soc/hailo15_scmi_api.h>
+
+/* reserve memory for secondary cores' spin-table */
+/memreserve/ 0x800FF000 0x0001000;
+
+/ {
+    #address-cells = <2>;
+    #size-cells = <2>;
+
+    resets = <&scmi_reset HAILO15_SCMI_RESET_IDX_SYSTEM_RESET>;
+    reset-names = "system-reset";
+
+    reserved-memory {
+        #address-cells = <2>;
+        #size-cells = <2>;
+        ranges;
+
+        // Allocate 4kB to the buffer characters before the console is available
+        pre_console_buffer_reserved: pre_console_buffer@0 {
+            reg = <0x0 0x83000000 0x0 0x1000>;
+        };
+    };
+
+
+    serial: uart@00109000 {
+        compatible = "snps,dw-apb-uart";
+        reg = <0 0x00109000 0 0x1000>;
+        clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>;
+        clock-names = "hclk";
+        reg-shift = <2>;
+        u-boot,dm-spl;
+    };
+
+    sram@60000000 {
+        compatible = "mmio-sram";
+        reg = <0 0x60000000 0 0x4000>;
+
+        #address-cells = <2>;
+        #size-cells = <2>;
+        ranges = <0x0 0x0 0x0 0x60000000 0x0 0x4000>;
+
+        u-boot,dm-spl;
+        cpu_scp_tx: scp-shmem@0 {
+            compatible = "arm,scmi-shmem";
+            reg = <0 0 0 0x1000>;
+            u-boot,dm-spl;
+        };
+        cpu_scp_rx: scp-shmem@1000 {
+            compatible = "arm,scmi-shmem";
+            reg = <0 0x1000 0 0x1000>;
+        };
+        cpu_csm_tx: scp-shmem@2000 {
+            compatible = "arm,scmi-shmem";
+            reg = <0 0x2000 0 0x1000>;
+        };
+        cpu_csm_rx: scp-shmem@3000 {
+            compatible = "arm,scmi-shmem";
+            reg = <0 0x3000 0 0x1000>;
+        };
+    };
+
+    pl320_mbox: mailbox@78002000 {
+        #mbox-cells = <3>;
+        compatible = "arm,pl320-mailbox";
+        reg = <0 0x78002000 0 0x1000>;
+        arm,dev-ch-idx = <0>;
+        u-boot,dm-spl;
+    };
+
+    firmware {
+        scmi {
+            compatible = "arm,scmi";
+            mboxes = <&pl320_mbox 6 1 0>;
+            mbox-names = "tx";
+            shmem = <&cpu_scp_tx>;
+            #address-cells = <1>;
+            #size-cells = <0>;
+            fw-ver = <SCU_FW_BUILD_VERSION>;
+            scmi_timeout = <1000000>;
+            u-boot,dm-spl;
+            scmi_clk: protocol@14 {
+                reg = <0x14>;
+                #clock-cells = <1>;
+                u-boot,dm-spl;
+            };
+            scmi_reset: protocol@16 {
+                reg = <0x16>;
+                #reset-cells = <1>;
+                u-boot,dm-spl;
+            };
+        };
+    };
+
+
+    qspi: qspi@10c000 {
+        compatible = "cdns,qspi-nor";
+        #address-cells = <1>;
+        #size-cells = <0>;
+        reg = <0x00000000 0x0010c000 0x00000000 0x1000>,
+                <0x00000000 0x70000000 0x00000000 0x08000000>;
+        clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>;
+
+        cdns,fifo-depth = <256>;
+        cdns,fifo-width = <4>;
+        cdns,trigger-address = <0>;
+        cdns,is-decoded-cs = <0>;
+
+        status = "okay";
+
+        u-boot,dm-spl;
+
+        spi0_flash0: flash@0 {
+            #address-cells = <1>;
+            #size-cells = <1>;
+            compatible = "jedec,spi-nor";
+            spi-max-frequency = <6250000>; /* 90Mhz in DTR, 166Mhz in STR */
+            reg = <0>;		/* chip select */
+
+            u-boot,dm-spl;
+        };
+
+    };
+
+    watchdog@7c2c1000 {
+		compatible = "arm,sp805", "arm,primecell";
+		reg = <0 0x7c2c1000 0 0x1000>;
+            	clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>, <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>;
+		clock-names = "wdog_clk", "apb_pclk";
+            	timeout-sec = <60>;
+		u-boot,dm-spl;
+    };
+
+    sdio0: sdio0@78000000 {
+        status = "disabled";
+        compatible = "hailo,dwcmshc-sdhci-0";
+        bus-width = <4>;
+        reg = <0 0x78000000 0 0x1000>;
+        // switch-mode is needed according to configuration
+        broken-cd;
+        disable-wp;
+        clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>, <&scmi_clk HAILO15_SCMI_CLOCK_IDX_SDIO_0_M_HCLK>,
+                 <&scmi_clk HAILO15_SCMI_CLOCK_IDX_SDIO_0_CARD_CLK>, <&scmi_clk HAILO15_SCMI_CLOCK_IDX_SDIO_0_CLK_DIV_BYPASS>;
+        clock-names = "core", "m_clk", "card_clk", "clk_div_bypass";
+        resets = <&scmi_reset HAILO15_SCMI_RESET_IDX_SDIO1_8BIT_MUX>;
+        reset-names = "sdio1-8bit-mux";
+        u-boot,dm-spl;
+    };
+    sdio1: sdio1@78001000 {
+        status = "disabled";
+        compatible = "hailo,dwcmshc-sdhci-1";
+        bus-width = <4>;
+        reg = <0 0x78001000 0 0x400>;
+        // switch-mode is needed according to configuration
+        broken-cd;
+        disable-wp;
+        clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>, <&scmi_clk HAILO15_SCMI_CLOCK_IDX_SDIO_1_M_HCLK>,
+                 <&scmi_clk HAILO15_SCMI_CLOCK_IDX_SDIO_1_CARD_CLK>, <&scmi_clk HAILO15_SCMI_CLOCK_IDX_SDIO_1_CLK_DIV_BYPASS>;
+        clock-names = "core", "m_clk", "card_clk", "clk_div_bypass";
+        resets = <&scmi_reset HAILO15_SCMI_RESET_IDX_SDIO1_8BIT_MUX>;
+        reset-names = "sdio1-8bit-mux";
+        u-boot,dm-spl;
+    };
+
+    pinctrl: pinctrl@7c291000 {
+            compatible = "hailo15,pinctrl";
+            reg = <0 0x7c291000 0 0x1000>,
+                  <0 0x7c292000 0 0x1000>;
+            reg-names = "general_pads_config_base", "gpio_pads_config_base";
+    };
+
+    macb: ethernet@1b5000 {
+        status = "disabled";
+        compatible = "hailo,hailo15-gem";
+        reg = <0 0x001b5000 0 0x3000>, <0 0x7c290064 0 0x4>;
+        reg-names = "eth_ctrl", "top_config_clock_conf";
+        clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_ETHERNET_PCLK>, <&scmi_clk HAILO15_SCMI_CLOCK_IDX_ETHERNET_ACLK>;
+        clock-names = "pclk", "hclk";
+        phy-mode = "rgmii";
+    };
+    chosen {
+        stdout-path = &serial;
+    };
+
+    aliases {
+        mmc0 = &sdio0;
+        mmc1 = &sdio1;
+        spi0 = &qspi;
+    };
+};
