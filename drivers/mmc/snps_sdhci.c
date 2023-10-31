@@ -347,8 +347,8 @@ static int snps_sdhci_probe(struct udevice *dev)
 	struct sdhci_host *host = dev_get_priv(dev);
 	fdt_addr_t base;
 	int ret;
-	unsigned int mux_mod;
 	ofnode phy_config_node;
+	unsigned int bus_width;
 
 	base = devfdt_get_addr(dev);
 	if (base == FDT_ADDR_T_NONE)
@@ -387,21 +387,19 @@ static int snps_sdhci_probe(struct udevice *dev)
 		return ret;
 	}
 
-	ret = dev_read_u32(dev, "switch-mode", &mux_mod);
+	ret = dev_read_u32(dev, "bus-width", &bus_width);
 	if (ret) {
-		dev_err(dev, "failed to get 8-bit mux mode: ret[%d]\n", ret);
+		dev_err(dev, "failed to get bus-width: ret[%d]\n", ret);
 		return ret;
 	}
-
-	if(mux_mod == 8) {
+	if (bus_width ==  0x8) {
 		// Reset -Set 8 bit mux in case this is 8bit
 		ret = reset_deassert(&plat->reset);
-	}
-	else{
+	} else{
 		// Reset -Clr 8 bit mux in case this is 4bit
 		ret = reset_assert(&plat->reset);
 	}
-        if (ret) {
+	if (ret) {
 		dev_err(dev, "reset mux failed: ret[%d]\n", ret);
 		return ret;
 	}

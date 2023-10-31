@@ -1170,7 +1170,9 @@ dtb-$(CONFIG_TARGET_HAILO15_VELOCE) += hailo15-veloce.dtb
 dtb-$(CONFIG_TARGET_HAILO15_VP) += hailo15-vp.dtb
 dtb-$(CONFIG_TARGET_HAILO15_EVB_2_CAMERA_VPU) += hailo15-evb-2-camera-vpu.dtb
 dtb-$(CONFIG_TARGET_HAILO15_EVB_SECURITY_CAMERA) += hailo15-evb-security-camera.dtb
+dtb-$(CONFIG_TARGET_HAILO15_EVB_SECURITY_CAMERA) += hailo15-evb-security-camera-sdio1-8bit.dtb
 dtb-$(CONFIG_TARGET_HAILO15_SBC) += hailo15-sbc.dtb
+
 targets += $(dtb-y)
 
 # Add any required device tree compiler flags here

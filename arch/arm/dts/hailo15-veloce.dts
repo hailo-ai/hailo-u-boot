@@ -8,7 +8,6 @@
 #include "hailo15-base.dtsi"
 
 &sdio0 {
-    switch-mode = <4>;
     status = "okay";
 };
 

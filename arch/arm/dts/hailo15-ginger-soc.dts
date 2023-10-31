@@ -9,7 +9,7 @@
 
 &sdio1 {
     status = "okay";
-    switch-mode = <8>;
+    bus-width = <8>;
 };
 
 &macb {

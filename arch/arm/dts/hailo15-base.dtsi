@@ -144,7 +144,6 @@
         compatible = "hailo,dwcmshc-sdhci-0";
         bus-width = <4>;
         reg = <0 0x78000000 0 0x1000>;
-        // switch-mode is needed according to configuration
         broken-cd;
         disable-wp;
         clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>, <&scmi_clk HAILO15_SCMI_CLOCK_IDX_SDIO_0_M_HCLK>,
@@ -159,7 +158,6 @@
         compatible = "hailo,dwcmshc-sdhci-1";
         bus-width = <4>;
         reg = <0 0x78001000 0 0x400>;
-        // switch-mode is needed according to configuration
         broken-cd;
         disable-wp;
         clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>, <&scmi_clk HAILO15_SCMI_CLOCK_IDX_SDIO_1_M_HCLK>,
@@ -180,8 +178,8 @@
     macb: ethernet@1b5000 {
         status = "disabled";
         compatible = "hailo,hailo15-gem";
-        reg = <0 0x001b5000 0 0x3000>, <0 0x7c290064 0 0x4>;
-        reg-names = "eth_ctrl", "top_config_clock_conf";
+        reg = <0 0x001b5000 0 0x3000>;
+        reg-names = "eth_ctrl";
         clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_ETHERNET_PCLK>, <&scmi_clk HAILO15_SCMI_CLOCK_IDX_ETHERNET_ACLK>;
         clock-names = "pclk", "hclk";
         phy-mode = "rgmii";

@@ -46,6 +46,7 @@
 #include <asm/arch/clk.h>
 #include <linux/errno.h>
 #include <linux/log2.h>
+#include <scmi_hailo.h>
 
 #include "macb.h"
 
@@ -650,12 +651,8 @@ static int macb_sama7g5_clk_init(struct udevice *dev, ulong rate)
 static int macb_hailo15_clk_init(struct udevice *dev, ulong rate)
 {
 	struct clk clk;
+	struct udevice *scmi_agent_dev;
 	int ret;
-	uint32_t tx_shift_value = 0;
-	uint32_t rx_shift_value = 0;
-
-	uintptr_t top_config_clock_conf_reg = 0;
-	uint32_t top_config_clock_conf_value = 0;
 
 	uint32_t tx_clock_delay = dev_read_u32_default(dev, "hailo,tx-clock-delay", 0);
 	uint8_t tx_clock_inversion = (uint8_t)dev_read_bool(dev, "hailo,tx-clock-inversion");
@@ -667,16 +664,21 @@ static int macb_hailo15_clk_init(struct udevice *dev, ulong rate)
 	// Bypass if any value is different from default
 	uint32_t rx_bypass_clock_delay = (rx_clock_delay != 0) || rx_clock_inversion;
 
-	// Assign delay directly to top config
-	top_config_clock_conf_reg = (uintptr_t)dev_remap_addr_name(dev, "top_config_clock_conf");
-	// Structure: tx_clock_delay(clock_conf[9:7]), tx_clock_inversion(clock_conf[6]), tx_bypass_clock_delay(clock_conf[5])
-	tx_shift_value = ((tx_clock_delay & 7) << 2 | (tx_clock_inversion & 1) << 1  | (tx_bypass_clock_delay & 1) << 0) << 5; 
-	// Structure: rx_clock_delay(clock_conf[4:2]), rx_clock_inversion(clock_conf[1]), rx_bypass_clock_delay(clock_conf[0])
-	rx_shift_value = ((rx_clock_delay & 7) << 2 | (rx_clock_inversion & 1) << 1  | (rx_bypass_clock_delay & 1) << 0) << 0; 
+	ret = uclass_first_device_err(UCLASS_SCMI_AGENT, &scmi_agent_dev);
+	if (ret) {
+		printf("Error retrieving SCMI agent uclass: ret=%d\n", ret);
+		return ret;
+	}
 
-	// Remove bits [9:0] (0x3ff) from reg and assign new values
-	top_config_clock_conf_value = tx_shift_value | rx_shift_value | (readl(top_config_clock_conf_reg) & (~0x3ff));
-	writel(top_config_clock_conf_value, top_config_clock_conf_reg);
+	ret = scmi_hailo_configure_ethernet_delay(scmi_agent_dev,
+		tx_bypass_clock_delay, tx_clock_inversion, tx_clock_delay, 
+		rx_bypass_clock_delay, rx_clock_inversion,  rx_clock_delay);
+
+	if (ret) {
+		/* If ret value is SCMI_NOT_SUPPORTED, enabling CONFIG_SCMI_HAILO in Kconfig might solve the problem. */
+		printf("Error configuring ethernet delay: ret=%d\n", ret);
+		return ret;
+	}
 
 	ret = clk_get_by_name(dev, "pclk", &clk);
 	if (ret)

@@ -26,6 +26,12 @@ enum scmi_std_protocol {
 	SCMI_PROTOCOL_ID_VOLTAGE_DOMAIN = 0x17,
 };
 
+#if IS_ENABLED(CONFIG_SCMI_HAILO)
+enum scmi_ext_hailo_protocol {
+	SCMI_PROTOCOL_ID_HAILO = 0x81,
+};
+#endif /* IS_ENABLED(CONFIG_SCMI_HAILO) */
+
 enum scmi_status_code {
 	SCMI_SUCCESS =  0,
 	SCMI_NOT_SUPPORTED = -1,

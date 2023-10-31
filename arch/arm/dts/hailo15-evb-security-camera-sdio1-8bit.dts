@@ -1,0 +1,6 @@
+#include "hailo15-evb-base.dtsi"
+
+&sdio1 {
+    status = "okay";
+    bus-width = <8>;
+};

@@ -24,3 +24,9 @@ config SCMI_BASE
 	help
 	  Support base protocol functionality of SCMI.
 	  Needed only for querying firmware version.
+
+config SCMI_HAILO
+	bool "Enable SCMI Hailo proprietary protocol"
+	depends on SCMI_FIRMWARE
+	help
+	  Support Hailo proprietary protocol over SCMI.

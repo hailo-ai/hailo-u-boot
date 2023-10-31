@@ -10,6 +10,7 @@ config MACH_HAILO15
 	bool "Hailo15 SoC"
 	select MISC_INIT_R
 	select SCMI_BASE
+	select SCMI_HAILO
 	select SUPPORT_SPL
 	select ARM64
 	select ARMV8_MULTIENTRY
@@ -147,6 +148,9 @@ config SYS_PROMPT
 
 config HAILO15_DDR_ENABLE_ECC
 	bool "Hailo15 DDR enable ECC"
+
+config HAILO15_EMMC_8BIT
+	bool "Hailo15 emmc 8bit"
 
 config NR_DRAM_BANKS
 	default 2 if HAILO15_DDR_ENABLE_ECC
