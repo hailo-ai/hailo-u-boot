@@ -20,6 +20,8 @@ int scmi_hailo_configure_ethernet_delay(
     struct udevice *dev, u8 tx_bypass_clock_delay, uint8_t tx_clock_inversion,
     uint8_t tx_clock_delay, uint8_t rx_bypass_clock_delay,
     uint8_t rx_clock_inversion, uint8_t rx_clock_delay);
+
+int scmi_hailo_set_eth_rmii(struct udevice *dev);
 #else
 int scmi_hailo_configure_ethernet_delay(
     struct udevice *dev, u8 tx_bypass_clock_delay, uint8_t tx_clock_inversion,
@@ -27,6 +29,11 @@ int scmi_hailo_configure_ethernet_delay(
     uint8_t rx_clock_inversion, uint8_t rx_clock_delay)
 {
     return SCMI_NOT_SUPPORTED;
+}
+
+int scmi_hailo_set_eth_rmii(struct udevice *dev);
+{
+    return SCMI_NOT_SUPPORTED;   
 }
 #endif /* IS_ENABLED(CONFIG_SCMI_HAILO) */
 

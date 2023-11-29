@@ -653,6 +653,7 @@ static int macb_hailo15_clk_init(struct udevice *dev, ulong rate)
 	struct clk clk;
 	struct udevice *scmi_agent_dev;
 	int ret;
+	const char* phy_mode;
 
 	uint32_t tx_clock_delay = dev_read_u32_default(dev, "hailo,tx-clock-delay", 0);
 	uint8_t tx_clock_inversion = (uint8_t)dev_read_bool(dev, "hailo,tx-clock-inversion");
@@ -678,6 +679,16 @@ static int macb_hailo15_clk_init(struct udevice *dev, ulong rate)
 		/* If ret value is SCMI_NOT_SUPPORTED, enabling CONFIG_SCMI_HAILO in Kconfig might solve the problem. */
 		printf("Error configuring ethernet delay: ret=%d\n", ret);
 		return ret;
+	}
+
+	phy_mode = dev_read_prop(dev, "phy-mode", NULL);
+	if (strcmp(phy_mode, "rmii") == 0) {
+		ret = scmi_hailo_set_eth_rmii(scmi_agent_dev);
+		if (ret) {
+			/* If ret value is SCMI_NOT_SUPPORTED, enabling CONFIG_SCMI_HAILO in Kconfig might solve the problem. */
+			printf("Error setting rmii mode: ret=%d\n", ret);
+			return ret;
+		}
 	}
 
 	ret = clk_get_by_name(dev, "pclk", &clk);

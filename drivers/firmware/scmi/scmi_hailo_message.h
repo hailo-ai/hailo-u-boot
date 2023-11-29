@@ -3,8 +3,6 @@
 
 #include <asm/types.h>
 
-#define SCMI_HAILO_CONFIGURE_ETHERNET_DELAY (4)
-
 /**
  * struct scmi_hailo_configure_ethernet_delay_in - Message payload for Configure
  * Ethernet Delay command
@@ -24,6 +22,24 @@ struct __attribute__((__packed__)) scmi_hailo_configure_ethernet_delay_in {
  * @status:	SCMI command status
  */
 struct scmi_hailo_configure_ethernet_delay_out {
+  u32 status;
+};
+
+
+/**
+ * struct scmi_hailo_set_eth_rmii_in - Response payload for
+ * Configure RMII mode
+ * @status:	SCMI command status
+ */
+struct scmi_hailo_set_eth_rmii_in {
+};
+
+/**
+ * struct scmi_hailo_set_eth_rmii_out - Response payload for
+ * Configure RMII mode
+ * @status:	SCMI command status
+ */
+struct scmi_hailo_set_eth_rmii_out {
   u32 status;
 };
 

@@ -40,6 +40,50 @@
         u-boot,dm-spl;
     };
 
+    i2c_0: i2c@104000 {
+        status = "disabled";
+        compatible = "snps,designware-i2c";
+        reg = <0 0x104000 0 0x1000>;
+        clock-frequency = <100000>;
+        clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>;
+        clock-names = "hclk";
+        #address-cells = <1>;
+        #size-cells = <0>;
+    };
+
+    i2c_1: i2c@105000 {
+        status = "disabled";
+        compatible = "snps,designware-i2c";
+        reg = <0 0x105000 0 0x1000>;
+        clock-frequency = <100000>;
+        clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>;
+        clock-names = "hclk";
+        #address-cells = <1>;
+        #size-cells = <0>;
+    };
+
+    i2c_2: i2c@106000 {
+        status = "disabled";
+        compatible = "snps,designware-i2c";
+        reg = <0 0x106000 0 0x1000>;
+        clock-frequency = <100000>;
+        clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>;
+        clock-names = "hclk";
+        #address-cells = <1>;
+        #size-cells = <0>;
+    };
+
+    i2c_3: i2c@107000 {
+        status = "disabled";
+        compatible = "snps,designware-i2c";
+        reg = <0 0x107000 0 0x1000>;
+        clock-frequency = <100000>;
+        clocks = <&scmi_clk HAILO15_SCMI_CLOCK_IDX_HCLK>;
+        clock-names = "hclk";
+        #address-cells = <1>;
+        #size-cells = <0>;
+    };
+
     sram@60000000 {
         compatible = "mmio-sram";
         reg = <0 0x60000000 0 0x4000>;
