@@ -8,7 +8,9 @@ config SYS_SOC
 
 config MACH_HAILO15
 	bool "Hailo15 SoC"
+	select ARCH_SUPPORT_TFABOOT
 	select MISC_INIT_R
+	select BOARD_EARLY_INIT_R
 	select SCMI_BASE
 	select SCMI_HAILO
 	select SUPPORT_SPL
@@ -23,6 +25,7 @@ config MACH_HAILO15
 	select DM_SPI
 	select DM_SPI_FLASH
 	select OF_CONTROL
+	select OF_BOARD
 	select SPI
 	select SPI_FLASH
 	select CADENCE_QSPI
@@ -51,6 +54,7 @@ config MACH_HAILO15
 	select PINCTRL_HAILO15
 	select SPL
 	select SPL_DM
+	select SPL_MMC_WRITE
 	select SPL_DM_MAILBOX
 	select SPL_LIBCOMMON_SUPPORT
 	select SPL_LIBGENERIC_SUPPORT
@@ -80,6 +84,7 @@ config MACH_HAILO15
 	select SPL_WDT
 	select WDT
 	select WDT_SP805
+	select SPL_BOARD_INIT
 	imply CMD_DM
 	imply CMD_SF
 	imply CMD_NET
@@ -94,6 +99,7 @@ config MACH_HAILO15
 	imply FS_FAT
 	imply FAT_WRITE
 	imply CMD_BOOTMENU
+	imply PARTITION_TYPE_GUID
 	imply MENU
 	imply AUTOBOOT_MENU_SHOW
 	imply CMD_MEMTEST
@@ -140,6 +146,14 @@ config SPL_SIZE_LIMIT
 config SPL_SYS_MALLOC_F_LEN
 	default 0x81f000
 
+config HAILO15_DTB_ADDRESS
+	hex "Hailo15 DTB load address"
+	default 0x80100000
+
+config HAILO15_DTB_MAX_SIZE
+	hex "Hailo15 DTB maximum size"
+	default 0xD4000
+
 config SPL_SIZE_LIMIT_PROVIDE_STACK
 	default 0
 
@@ -163,6 +177,16 @@ config HAILO15_SWUPDATE
 config SPL_OF_LIBFDT_ASSUME_MASK
 	default 0
 
+config SYS_MMCSD_FS_BOOT_PARTITION
+	default -2
+
+config HAILO15_MMC_BOOT_PARTITION
+	int
+	default 1
+
+config HAILO15_MMC_BOOT_PARTITION_B
+	int
+	default 3
 endif
 
 config TARGET_HAILO15_VP

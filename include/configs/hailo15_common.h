@@ -39,8 +39,12 @@
     "load_swupdate_image_from_mmc=" UNNEEDED_MMCINFO_HACK " fatload mmc ${device_num} ${swupdate_ram_addr} swupdate-image-" CONFIG_SYS_BOARD ".ext4.gz && setenv swupdate_filesize ${filesize}\0" \
     "write_swupdate_image_to_mmc=" UNNEEDED_MMCINFO_HACK " fatwrite mmc ${device_num} ${swupdate_ram_addr} swupdate-image-" CONFIG_SYS_BOARD ".ext4.gz ${filesize}\0" \
     "download_swupdate_image_to_ram=run set_eth_env && tftpboot ${swupdate_ram_addr} swupdate-image-" CONFIG_SYS_BOARD ".ext4.gz\0" \
-    "boot_swupdate=run set_mmc" SWUPDATE_MMC_INDEX "_device_num && run load_fitimage_from_mmc && run load_swupdate_image_from_mmc && setenv bootargs ${bootargs_base} root=/dev/ram0 ramdisk_size=1000000 && bootm ${far_ram_addr} ${swupdate_ram_addr}:${swupdate_filesize}\0" \
-    "update_swupdate_image=run download_swupdate_image_to_ram && run write_swupdate_image_to_mmc\0"
+    "swupdate_server_udp_logging_port=12345\0" \
+    "swupdate_update_filename=hailo-update-image-" CONFIG_SYS_BOARD ".swu\0" \
+    "set_swupdate_bootargs=run set_eth_env && setenv bootargs ${bootargs_base} root=/dev/ram0 ramdisk_size=1000000 SWUPDATE_SERVER_IP=${serverip} SWUPDATE_SERVER_UDP_LOGGING_PORT=${swupdate_server_udp_logging_port} SWUPDATE_UPDATE_FILENAME=${swupdate_update_filename}\0" \
+    "boot_swupdate=run set_mmc" SWUPDATE_MMC_INDEX "_device_num && run load_fitimage_from_mmc && run load_swupdate_image_from_mmc && run set_swupdate_bootargs && bootm ${far_ram_addr} ${swupdate_ram_addr}:${swupdate_filesize}\0" \
+    "update_swupdate_image=run download_swupdate_image_to_ram && run write_swupdate_image_to_mmc\0" \
+    "boot_swupdate_ab=setenv swupdate_update_filename hailo-ab-update-image-" CONFIG_SYS_BOARD ".swu && run boot_swupdate\0"
 
 #define UPDATE_PARTITIONS_COMMAND "update_partitions=run update_uboot && run update_fitimage && run update_swupdate_image && run update_rootfs\0"
 

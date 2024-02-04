@@ -1,0 +1,69 @@
+Hailo Boot Info Device Tree Binding
+===================================
+
+The `hailo_boot_info` node provides information about the Hailo boot configuration.
+
+Required properties:
+- compatible: Should be set to "hailo,hailo_boot_info".
+- dtb-ddr-load-address: Physical base address and size of the ddr load address at the sram.
+
+- ddr_config: Configuration structure for the DDR controller.
+
+The `ddr_config` structure includes the following properties:
+- ecc_mode: ECC mode for the DDR controller. The value depends on the U-Boot configuration of CONFIG_HAILO15_DDR_ENABLE_ECC.
+    - Possible values:
+        - DDR_CTRL_ECC_MODE_CORRECTION (ECC enabled + detection + correction) if CONFIG_HAILO15_DDR_ENABLE_ECC is enabled
+        - DDR_CTRL_ECC_MODE_DISABLED (ECC disabled) if CONFIG_HAILO15_DDR_ENABLE_ECC is disabled
+- operational_freq: Controls the operational frequency of the DDR after training.
+    - Possible values:
+        - 0: 50MHz (xtal mode)
+        - 1: f1_frequency
+        - 2: f2_frequency
+- bist_enable: Controls enabling or disabling the BIST procedure that runs at every boot.
+    - Possible values:
+        - 0: disable
+        - 1: enable
+- f1_frequency: Controls the frequency of the DDR in F1.
+- f2_frequency: Controls the frequency of the DDR in F2.
+    - Note: This value is half the transfer rate (MT/s) value because it is double data-rate.
+    - Possible values:
+        - 50000000, 100000000, 1598000000, 200000000,
+        - 400000000, 800000000, 1200000000, 1600000000,
+        - 2000000000, 2130000000, 2132000000, 2133000000
+- periodic_vref_training_enable: Enable (1) or disable (0) periodic VREF re-training upon temperature change.
+- periodic_calvl_training_enable: Enable (1) or disable (0) periodic CALVL re-training upon temperature change.
+- periodic_wrlvl_training_enable: Enable (1) or disable (0) periodic WRLVL re-training upon temperature change.
+- periodic_rdlvl_training_enable: Enable (1) or disable (0) periodic RDLVL re-training upon temperature change.
+- periodic_rdlvl_gate_training_enable: Enable (1) or disable (0) periodic RDGATE re-training upon temperature change.
+- periodic_wdqlvl_training_enable: Enable (1) or disable (0) periodic WDQLVL re-training upon temperature change.
+- periodic_io_calibration_disabled: Is periodic IO calibration disabled by firmware? (1) yes, (0) no.
+- temperature_poll_period_ms: Polling rate for temperature changes in milliseconds.
+- temperature_retraining_threshold_millicelsius: Retraining temperature change threshold in milli-Celsius.
+- stop_before_controller_start: Is in stop-before-controller-start mode? (1) yes, (0) no).
+    - This mode is used for comparison with the configuration before controller-start in DDRAPP mode.
+
+Example:
+-------
+
+hailo_boot_info {
+        compatible = "hailo,hailo_boot_info";
+        dtb-ddr-load-address = <0x0 CONFIG_HAILO15_DTB_ADDRESS 0x0 CONFIG_HAILO15_DTB_MAX_SIZE>;
+        ddr_config {
+                ecc_mode = <DDR_CTRL_ECC_MODE_CORRECTION>;
+                operational_freq = <1>;
+                bist_enable = <1>;
+                f1_frequency = <1000000000>;
+                f2_frequency = <2000000000>;
+                periodic_vref_training_enable = <1>;
+                periodic_calvl_training_enable = <1>;
+                periodic_wrlvl_training_enable = <1>;
+                periodic_rdlvl_training_enable = <1>;
+                periodic_rdlvl_gate_training_enable = <1>;
+                periodic_wdqlvl_training_enable = <1>;
+                periodic_io_calibration_disabled = <0>;
+                temperature_poll_period_ms = <1000>;
+                temperature_retraining_threshold_millicelsius = <100>;
+                stop_before_controller_start = <0>;
+        };
+};
+```

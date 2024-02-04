@@ -28,21 +28,28 @@
 #define INITENV
 #endif
 
-#define	OFFSET_INVALID		(~(u32)0)
-
 #ifdef CONFIG_ENV_OFFSET_REDUND
-#define ENV_OFFSET_REDUND	CONFIG_ENV_OFFSET_REDUND
 
-static ulong env_offset		= CONFIG_ENV_OFFSET;
-static ulong env_new_offset	= CONFIG_ENV_OFFSET_REDUND;
-
-#else
-
-#define ENV_OFFSET_REDUND	OFFSET_INVALID
+static ulong env_offset;
+static ulong env_new_offset;
 
 #endif /* CONFIG_ENV_OFFSET_REDUND */
 
 DECLARE_GLOBAL_DATA_PTR;
+
+__weak ulong env_sf_get_env_offset(void)
+{
+	return CONFIG_ENV_OFFSET;
+}
+
+#ifdef CONFIG_ENV_OFFSET_REDUND
+
+__weak ulong env_sf_get_env_offset_redund(void)
+{
+	return CONFIG_ENV_OFFSET_REDUND;
+}
+
+#endif /* CONFIG_ENV_OFFSET_REDUND */
 
 static int setup_flash_device(struct spi_flash **env_flash)
 {
@@ -94,11 +101,11 @@ static int env_sf_save(void)
 	env_new.flags	= ENV_REDUND_ACTIVE;
 
 	if (gd->env_valid == ENV_VALID) {
-		env_new_offset = CONFIG_ENV_OFFSET_REDUND;
-		env_offset = CONFIG_ENV_OFFSET;
+		env_new_offset = env_sf_get_env_offset_redund();
+		env_offset = env_sf_get_env_offset();
 	} else {
-		env_new_offset = CONFIG_ENV_OFFSET;
-		env_offset = CONFIG_ENV_OFFSET_REDUND;
+		env_new_offset = env_sf_get_env_offset();
+		env_offset = env_sf_get_env_offset_redund();
 	}
 
 	/* Is the sector larger than the env (i.e. embedded) */
@@ -179,9 +186,9 @@ static int env_sf_load(void)
 	if (ret)
 		goto out;
 
-	read1_fail = spi_flash_read(env_flash, CONFIG_ENV_OFFSET,
+	read1_fail = spi_flash_read(env_flash, env_sf_get_env_offset(),
 				    CONFIG_ENV_SIZE, tmp_env1);
-	read2_fail = spi_flash_read(env_flash, CONFIG_ENV_OFFSET_REDUND,
+	read2_fail = spi_flash_read(env_flash, env_sf_get_env_offset_redund(),
 				    CONFIG_ENV_SIZE, tmp_env2);
 
 	ret = env_import_redund((char *)tmp_env1, read1_fail, (char *)tmp_env2,
@@ -214,7 +221,7 @@ static int env_sf_save(void)
 	/* Is the sector larger than the env (i.e. embedded) */
 	if (sect_size > CONFIG_ENV_SIZE) {
 		saved_size = sect_size - CONFIG_ENV_SIZE;
-		saved_offset = CONFIG_ENV_OFFSET + CONFIG_ENV_SIZE;
+		saved_offset = env_sf_get_env_offset() + CONFIG_ENV_SIZE;
 		saved_buffer = malloc(saved_size);
 		if (!saved_buffer)
 			goto done;
@@ -232,13 +239,13 @@ static int env_sf_save(void)
 	sector = DIV_ROUND_UP(CONFIG_ENV_SIZE, sect_size);
 
 	puts("Erasing SPI flash...");
-	ret = spi_flash_erase(env_flash, CONFIG_ENV_OFFSET,
+	ret = spi_flash_erase(env_flash, env_sf_get_env_offset(),
 		sector * sect_size);
 	if (ret)
 		goto done;
 
 	puts("Writing to SPI flash...");
-	ret = spi_flash_write(env_flash, CONFIG_ENV_OFFSET,
+	ret = spi_flash_write(env_flash, env_sf_get_env_offset(),
 		CONFIG_ENV_SIZE, &env_new);
 	if (ret)
 		goto done;
@@ -279,7 +286,7 @@ static int env_sf_load(void)
 		goto out;
 
 	ret = spi_flash_read(env_flash,
-		CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE, buf);
+		env_sf_get_env_offset(), CONFIG_ENV_SIZE, buf);
 	if (ret) {
 		env_set_default("spi_flash_read() failed", 0);
 		goto err_read;
@@ -309,12 +316,13 @@ static int env_sf_erase(void)
 		return ret;
 
 	memset(&env, 0, sizeof(env_t));
-	ret = spi_flash_write(env_flash, CONFIG_ENV_OFFSET, CONFIG_ENV_SIZE, &env);
+	ret = spi_flash_write(env_flash, env_sf_get_env_offset(), CONFIG_ENV_SIZE, &env);
 	if (ret)
 		goto done;
 
-	if (ENV_OFFSET_REDUND != OFFSET_INVALID)
-		ret = spi_flash_write(env_flash, ENV_OFFSET_REDUND, CONFIG_ENV_SIZE, &env);
+#ifdef CONFIG_ENV_OFFSET_REDUND
+	ret = spi_flash_write(env_flash, env_sf_get_env_offset_redund(), CONFIG_ENV_SIZE, &env);
+#endif /* CONFIG_ENV_OFFSET_REDUND */
 
 done:
 	spi_flash_free(env_flash);
@@ -383,12 +391,12 @@ static int env_sf_init_early(void)
 	if (ret)
 		goto out;
 
-	read1_fail = spi_flash_read(env_flash, CONFIG_ENV_OFFSET,
+	read1_fail = spi_flash_read(env_flash, env_sf_get_env_offset(),
 				    CONFIG_ENV_SIZE, tmp_env1);
 
 	if (IS_ENABLED(CONFIG_SYS_REDUNDAND_ENVIRONMENT)) {
 		read2_fail = spi_flash_read(env_flash,
-					    CONFIG_ENV_OFFSET_REDUND,
+					    env_sf_get_env_offset_redund(),
 					    CONFIG_ENV_SIZE, tmp_env2);
 		ret = env_check_redund((char *)tmp_env1, read1_fail,
 				       (char *)tmp_env2, read2_fail);
@@ -432,6 +440,11 @@ out:
 
 static int env_sf_init(void)
 {
+#ifdef CONFIG_ENV_OFFSET_REDUND
+	env_offset = env_sf_get_env_offset();
+	env_new_offset = env_sf_get_env_offset_redund();
+#endif
+
 #if defined(INITENV) && (CONFIG_ENV_ADDR != 0x0)
 	return env_sf_init_addr();
 #elif defined(CONFIG_ENV_SPI_EARLY)

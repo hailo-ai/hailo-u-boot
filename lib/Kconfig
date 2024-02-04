@@ -134,6 +134,7 @@ config SYS_HZ
 config SPL_USE_TINY_PRINTF
 	bool "Enable tiny printf() version in SPL"
 	depends on SPL
+	default n if ARCH_HAILO
 	default y
 	help
 	  This option enables a tiny, stripped down printf version.

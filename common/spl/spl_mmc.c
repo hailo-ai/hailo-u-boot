@@ -264,21 +264,29 @@ static int mmc_load_image_raw_os(struct spl_image_info *spl_image,
 #endif
 
 #ifdef CONFIG_SYS_MMCSD_FS_BOOT_PARTITION
+
+int __weak spl_mmc_fs_boot_partition(void)
+{
+	return CONFIG_SYS_MMCSD_FS_BOOT_PARTITION;
+}
+
 static int spl_mmc_do_fs_boot(struct spl_image_info *spl_image, struct mmc *mmc,
 			      const char *filename)
 {
 	int err = -ENOSYS;
 
+	__maybe_unused int partition = spl_mmc_fs_boot_partition();
+
 #ifdef CONFIG_SPL_FS_FAT
 	if (!spl_start_uboot()) {
 		err = spl_load_image_fat_os(spl_image, mmc_get_blk_desc(mmc),
-			CONFIG_SYS_MMCSD_FS_BOOT_PARTITION);
+			partition);
 		if (!err)
 			return err;
 	}
 #ifdef CONFIG_SPL_FS_LOAD_PAYLOAD_NAME
 	err = spl_load_image_fat(spl_image, mmc_get_blk_desc(mmc),
-				 CONFIG_SYS_MMCSD_FS_BOOT_PARTITION,
+				 partition,
 				 filename);
 	if (!err)
 		return err;
@@ -287,13 +295,13 @@ static int spl_mmc_do_fs_boot(struct spl_image_info *spl_image, struct mmc *mmc,
 #ifdef CONFIG_SPL_FS_EXT4
 	if (!spl_start_uboot()) {
 		err = spl_load_image_ext_os(spl_image, mmc_get_blk_desc(mmc),
-			CONFIG_SYS_MMCSD_FS_BOOT_PARTITION);
+			partition);
 		if (!err)
 			return err;
 	}
 #ifdef CONFIG_SPL_FS_LOAD_PAYLOAD_NAME
 	err = spl_load_image_ext(spl_image, mmc_get_blk_desc(mmc),
-				 CONFIG_SYS_MMCSD_FS_BOOT_PARTITION,
+				 partition,
 				 filename);
 	if (!err)
 		return err;

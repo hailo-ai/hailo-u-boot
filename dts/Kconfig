@@ -94,10 +94,17 @@ config OF_LIVE
 	  enables a live tree which is available after relocation,
 	  and can be adjusted as needed.
 
+config OF_BOARD
+	bool "Provided by the board (e.g a previous loader) at runtime"
+	default y if SANDBOX
+	help
+	  If this option is enabled, the device tree will be provided by
+	  the board at runtime if the board supports it, instead of being
+	  bundled with the image.
+
 choice
 	prompt "Provider of DTB for DT control"
 	depends on OF_CONTROL
-	default OF_BOARD if SANDBOX
 
 config OF_SEPARATE
 	bool "Separate DTB for DT control"
@@ -113,13 +120,6 @@ config OF_EMBED
 	  built into the U-Boot image. This is suitable for local debugging
 	  and development only and is not recommended for production devices.
 	  Boards in the mainline U-Boot tree should not use it.
-
-config OF_BOARD
-	bool "Provided by the board (e.g a previous loader) at runtime"
-	help
-	  If this option is enabled, the device tree will be provided by
-	  the board at runtime if the board supports it, instead of being
-	  bundled with the image.
 
 endchoice
 

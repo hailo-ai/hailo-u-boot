@@ -7,10 +7,12 @@
 
 /dts-v1/;
 
+#include <generated/autoconf.h>
 #include <dt-bindings/soc/hailo15_scmi_api.h>
 
 /* reserve memory for secondary cores' spin-table */
 /memreserve/ 0x800FF000 0x0001000;
+/memreserve/ CONFIG_HAILO15_DTB_ADDRESS CONFIG_HAILO15_DTB_MAX_SIZE;
 
 / {
     #address-cells = <2>;
@@ -30,6 +32,10 @@
         };
     };
 
+    hailo_boot_info: hailo_boot_info@0 {
+        compatible = "hailo,boot-info";
+        dtb-ddr-load-address = <0x0 CONFIG_HAILO15_DTB_ADDRESS 0x0 CONFIG_HAILO15_DTB_MAX_SIZE>;
+    };
 
     serial: uart@00109000 {
         compatible = "snps,dw-apb-uart";

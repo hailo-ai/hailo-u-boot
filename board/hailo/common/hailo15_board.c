@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2019-2023 Hailo Technologies Ltd. All rights reserved.  
+ * Copyright (c) 2019-2024 Hailo Technologies Ltd. All rights reserved.
  */
 
 #include <common.h>
@@ -10,8 +10,13 @@
 #include <reset-uclass.h>
 #include <scmi_base.h>
 #include <hang.h>
+#include <generated/autoconf.h>
+#include <scmi_hailo.h>
 
 DECLARE_GLOBAL_DATA_PTR;
+
+static struct udevice *scmi_agent_dev = NULL;
+ulong qspi_flash_ab_offset = 0;
 
 int board_init(void)
 {
@@ -20,17 +25,10 @@ int board_init(void)
 	return 0;
 }
 
-int misc_init_r(void)
+int hailo15_scmi_check_version_match(void)
 {
-	struct udevice *scmi_agent_dev;
 	u32 fw_version, impl_version;
 	int ret;
-
-	ret = uclass_first_device_err(UCLASS_SCMI_AGENT, &scmi_agent_dev);
-	if (ret) {
-		printf("Error retrieving SCMI agent uclass: ret=%d\n", ret);
-		return ret;
-	}
 
 	ret = dev_read_u32(scmi_agent_dev, "fw-ver", &fw_version);
 	if (ret) {
@@ -50,6 +48,41 @@ int misc_init_r(void)
 	}
 
 	return 0;
+}
+
+int hailo15_scmi_init(void)
+{
+	int ret;
+	struct scmi_hailo_get_boot_info_p2a boot_info;
+
+	ret = uclass_first_device_err(UCLASS_SCMI_AGENT, &scmi_agent_dev);
+	if (ret) {
+		printf("Error retrieving SCMI agent uclass: ret=%d\n", ret);
+		return ret;
+	}
+
+	ret = scmi_hailo_get_boot_info(scmi_agent_dev, &boot_info);
+	if (ret) {
+		printf("Error getting boot info via SCMI: ret=%d\n", ret);
+		return ret;
+	}
+
+	qspi_flash_ab_offset = boot_info.qspi_flash_ab_offset;
+	return 0;
+}
+
+int board_early_init_r(void)
+{
+	/* initializing scmi must be early, before env is loaded,
+	   since the offset of the env in QSPI is dependent on it */
+	return hailo15_scmi_init();
+}
+
+int misc_init_r(void)
+{
+	/* checking for version match with the SCU, this is done here
+	   and not in board_early_init_r(), since in board_early_init_r() we don't yet have serial */
+	return hailo15_scmi_check_version_match();
 }
 
 int dram_init(void)
@@ -106,3 +139,22 @@ void show_boot_progress(int progress)
 	printf("Boot reached stage %d\n", progress);
 }
 #endif
+
+/*
+ * return configured FDT blob address
+ */
+void *board_fdt_blob_setup(int *err)
+{
+	unsigned long fw_dtb = CONFIG_HAILO15_DTB_ADDRESS;
+
+	log_debug("%s: fw_dtb=%lx\n", __func__, fw_dtb);
+
+	*err = 0;
+
+	return (void *)fw_dtb;
+}
+
+ulong env_sf_get_env_offset(void)
+{
+	return ((ulong)CONFIG_ENV_OFFSET) + qspi_flash_ab_offset;
+}
