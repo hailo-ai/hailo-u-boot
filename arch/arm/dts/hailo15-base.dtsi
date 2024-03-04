@@ -35,6 +35,7 @@
     hailo_boot_info: hailo_boot_info@0 {
         compatible = "hailo,boot-info";
         dtb-ddr-load-address = <0x0 CONFIG_HAILO15_DTB_ADDRESS 0x0 CONFIG_HAILO15_DTB_MAX_SIZE>;
+        shutdown-gpio-pin = <20>;
     };
 
     serial: uart@00109000 {

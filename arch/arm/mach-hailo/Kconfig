@@ -184,9 +184,18 @@ config HAILO15_MMC_BOOT_PARTITION
 	int
 	default 1
 
+config HAILO15_MMC_ROOTFS_PARTITION
+	int
+	default 2
+
 config HAILO15_MMC_BOOT_PARTITION_B
 	int
 	default 3
+
+config HAILO15_MMC_ROOTFS_PARTITION_B
+	int
+	default 4
+
 endif
 
 config TARGET_HAILO15_VP

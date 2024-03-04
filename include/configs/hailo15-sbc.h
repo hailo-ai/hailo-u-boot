@@ -24,7 +24,9 @@
     "default_spl_boot_source=mmc2\0" \
     "spl_boot_source=mmc2\0"
 
-#define SWUPDATE_BOOTMENU_OPTION "bootmenu_5=SWUpdate=run boot_swupdate\0"
+#define SWUPDATE_BOOTMENU_OPTION "bootmenu_5=SWUpdate=run boot_swupdate_mmc\0" \
+                                 "bootmenu_6=SWUpdate AB board init=run boot_swupdate_ab_tftp\0"
+
 #include "hailo15_common.h"
 
 /*! @note: lpddr4 inline ecc located at the top 1/8 of the referred CS.

@@ -54,16 +54,7 @@ void board_boot_order(u32 *spl_boot_list)
 	printf("U-Boot SPL boot source %s\n", s);
 }
 
-__weak int hailo15_spl_mmc_fs_boot_partition(void)
-{
-	if (qspi_flash_ab_offset != 0) {
-		return CONFIG_HAILO15_MMC_BOOT_PARTITION_B;
-	}
-	return CONFIG_HAILO15_MMC_BOOT_PARTITION;
-}
-
-
 int spl_mmc_fs_boot_partition(void)
 {
-	return hailo15_spl_mmc_fs_boot_partition();
+	return hailo15_mmc_boot_partition();
 }

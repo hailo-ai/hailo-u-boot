@@ -12,6 +12,7 @@
 #include <hang.h>
 #include <generated/autoconf.h>
 #include <scmi_hailo.h>
+#include <env.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -78,8 +79,28 @@ int board_early_init_r(void)
 	return hailo15_scmi_init();
 }
 
+__weak int hailo15_mmc_boot_partition(void)
+{
+	if (qspi_flash_ab_offset != 0) {
+		return CONFIG_HAILO15_MMC_BOOT_PARTITION_B;
+	}
+	return CONFIG_HAILO15_MMC_BOOT_PARTITION;
+}
+
+__weak int hailo15_mmc_rootfs_partition(void)
+{
+	if (qspi_flash_ab_offset != 0) {
+		return CONFIG_HAILO15_MMC_ROOTFS_PARTITION_B;
+	}
+	return CONFIG_HAILO15_MMC_ROOTFS_PARTITION;
+}
+
 int misc_init_r(void)
 {
+	env_set_hex("qspi_flash_ab_offset", qspi_flash_ab_offset);
+	env_set_ulong("mmc_boot_partition", hailo15_mmc_boot_partition());
+	env_set_ulong("mmc_rootfs_partition", hailo15_mmc_rootfs_partition());
+
 	/* checking for version match with the SCU, this is done here
 	   and not in board_early_init_r(), since in board_early_init_r() we don't yet have serial */
 	return hailo15_scmi_check_version_match();

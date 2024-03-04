@@ -6,7 +6,7 @@
  */
 
 #include "hailo15-base.dtsi"
-#include "hailo15_ddr_MT53E1G32D2FW-046_configuration.dtsi"
+#include "hailo15_ddr_configuration.dtsi"
 #include "hailo15_ddr_MT53E1G32D2FW-046_regconfig_ca_odtb_pd.dtsi"
 
 &sdio0 {
