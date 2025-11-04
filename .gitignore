@@ -98,6 +98,3 @@ __pycache__
 
 # build configuration file
 build.cfg
-
-# pre-commit hooks
-!.pre-commit-config.yaml

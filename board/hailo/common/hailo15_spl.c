@@ -192,6 +192,15 @@ unsigned long spl_nor_get_uboot_base(void)
 }
 
 #ifdef CONFIG_SPL_LOAD_FIT
+
+#if CONFIG_IS_ENABLED(OS_BOOT)
+int spl_start_uboot(void)
+{
+	puts(SPL_TPL_PROMPT "Falcon mode: booting OS fitImage directly\n");
+	return 0;  /* Boot kernel */
+}
+#endif
+
 #ifdef CONFIG_MACH_HAILO10
 /**
  * board_fit_config_name_match() - Check for a matching board name

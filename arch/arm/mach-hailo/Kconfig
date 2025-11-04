@@ -366,6 +366,10 @@ config TARGET_HAILO10_M2_DEVEL
 	bool "Hailo10 M.2 development"
 	select MACH_HAILO10
 
+config TARGET_HAILO10_SBC_REV3
+	bool "Hailo10 SBC REV3"
+	select MACH_HAILO15
+
 config TARGET_HAILO12L_EVB
 	bool "Hailo12L EVB"
 	select MACH_HAILO12L
@@ -398,7 +402,7 @@ source "board/hailo/hailo15l-oregano/Kconfig"
 source "board/hailo/hailo15l-evb/Kconfig"
 source "board/hailo/hailo15l-sbc/Kconfig"
 source "board/hailo/hailo10-m2/Kconfig"
-source "board/hailo/hailo10-m2-devel/Kconfig"
+source "board/hailo/hailo10-sbc-rev3/Kconfig"
 source "board/hailo/hailo12l-evb/Kconfig"
 source "board/hailo/hailo12l-veloce/Kconfig"
 source "board/hailo/hailo12l-mint/Kconfig"

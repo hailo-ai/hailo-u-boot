@@ -18,6 +18,7 @@
 #include <linux/bitops.h>
 #include <linux/sizes.h>
 #include <dt-bindings/soc/hailo15_scu_fw_version.h>
+#include <dt-bindings/soc/hailo15_ddr_config.h>
 #include <spi.h>
 #include <spi_flash.h>
 #include <net.h>
@@ -44,6 +45,8 @@ struct hailo15_dram_cfg {
 	phys_size_t bank_total_size;
 	/* bank usable size = (ecc_enable) ? (bank_total_size * 7 / 8) : bank_total_size*/
 	phys_size_t bank_usable_size;
+	/* number of enabled ddr elements - will be used to calculate the amount of memory bank_total_size*/
+	uint8_t number_of_enabled_ddrs;
 } hailo15_dram_cfg;
 
 static enum env_location hailo_env_locations[] = {
@@ -236,7 +239,7 @@ int hailo15_scmi_init(void)
 int board_early_init_r(void)
 {
 	/* initializing scmi must be early, before env is loaded,
-	   since the offset of the env in QSPI is dependent on it */
+		since the offset of the env in QSPI is dependent on it */
 	return hailo15_scmi_init();
 }
 
@@ -264,7 +267,7 @@ int misc_init_r(void)
 	env_set_ulong("boot_image_mode", boot_image_mode);
 	env_set_ulong("mmc_boot_partition", hailo15_mmc_boot_partition());
 	env_set_ulong("mmc_rootfs_partition", hailo15_mmc_rootfs_partition());
-	
+
 	ret = scmi_hailo_send_boot_success_ind(scmi_agent_dev);
 	if (ret) {
 		printf("Error sending boot success indication via SCMI: ret=%d\n", ret);
@@ -275,7 +278,7 @@ int misc_init_r(void)
 	set_mac_addr();
 #endif
 	/* checking for version match with the SCU, this is done here
-	   and not in board_early_init_r(), since in board_early_init_r() we don't yet have serial */
+		and not in board_early_init_r(), since in board_early_init_r() we don't yet have serial */
 	return hailo15_scmi_check_version_match();
 }
 
@@ -289,34 +292,27 @@ int misc_init_r(void)
 
 #define DDR_CTRL_REGS_COUNT (0x19F)
 
-enum ddr_ctrl_ecc_mode {
-    DDR_CTRL_ECC_MODE_DISABLED,
-    DDR_CTRL_ECC_MODE_ENABLED, /* ECC enabled, detection disabled, correction disabled */
-    DDR_CTRL_ECC_MODE_DETECTION, /* ECC enabled, detection enabled, correction disabled */
-    DDR_CTRL_ECC_MODE_CORRECTION, /* ECC enabled, detection enabled, correction enabled */
-};
-
 int fdt_dram_cfg_get(void)
 {
-    char *ddr_cfg_path = "/hailo_boot_info/ddr_config";
+	char *ddr_cfg_path = "/hailo_boot_info/ddr_config";
 	const fdt32_t *prop;
 	uint32_t ecc_mode, cs_val_upper_0, cs_map;
 	int len;
 	int node;
 
-    node = fdt_path_offset(gd->fdt_blob, ddr_cfg_path);
-    if (node < 0) {
+	node = fdt_path_offset(gd->fdt_blob, ddr_cfg_path);
+	if (node < 0) {
 		printf("Error: fdt path (%s) doesn't exist\n", ddr_cfg_path);
-        return -EINVAL;
-    }
+		return -EINVAL;
+	}
 
 	/* Resolve ECC mode */
-    prop = fdt_getprop(gd->fdt_blob, node, "ecc_mode", &len);
-    if (prop == NULL) {
-		printf("Error: ftd path (%s/ecc_mode) doesn't exist\n", ddr_cfg_path);
-        return -EINVAL;
-    }
-    ecc_mode = fdt32_to_cpu(*prop);
+	prop = fdt_getprop(gd->fdt_blob, node, "ecc_mode", &len);
+	if (prop == NULL) {
+		printf("Error: fdt path (%s/ecc_mode) doesn't exist\n", ddr_cfg_path);
+		return -EINVAL;
+	}
+	ecc_mode = fdt32_to_cpu(*prop);
 	switch(ecc_mode) {
 	case DDR_CTRL_ECC_MODE_DISABLED:
 		hailo15_dram_cfg.ecc_enable = false;
@@ -332,15 +328,15 @@ int fdt_dram_cfg_get(void)
 	}
 
 	/* Read DDR controller regs */
-    prop = fdt_getprop(gd->fdt_blob, node, "DDR_ctrl_registers", &len);
-    if (prop == NULL) {
-		printf("Error: ftd path (%s/DDR_ctrl_registers) doesn't exist.\n", ddr_cfg_path);
-        return -EINVAL;
-    }
-    if (len != DDR_CTRL_REGS_COUNT * sizeof(uint32_t)) {
-		printf("Error: ftd path (%s/DDR_ctrl_registers) invalid propery length.\n", ddr_cfg_path);
-        return -EINVAL;
-    }
+	prop = fdt_getprop(gd->fdt_blob, node, "DDR_ctrl_registers", &len);
+	if (prop == NULL) {
+		printf("Error: fdt path (%s/DDR_ctrl_registers) doesn't exist.\n", ddr_cfg_path);
+		return -EINVAL;
+	}
+	if (len != DDR_CTRL_REGS_COUNT * sizeof(uint32_t)) {
+		printf("Error: fdt path (%s/DDR_ctrl_registers) invalid property length.\n", ddr_cfg_path);
+		return -EINVAL;
+		}
 	cs_val_upper_0 = (fdt32_to_cpu(prop[CS_VAL_UPPER_0_ADDR]) & CS_VAL_UPPER_0_MASK) >> CS_VAL_UPPER_0_OFFSET;
 	cs_map = (fdt32_to_cpu(prop[CS_MAP_ADDR]) & CS_MAP_MASK) >> CS_MAP_OFFSET;
 
@@ -377,11 +373,41 @@ int fdt_dram_cfg_get(void)
 		return -EINVAL;
 	}
 
+	/* Read enabled_ddrs */
+	/* Setting the number_of_enabled_ddrs from the device tree - 1 ddr active if the property does not exist in case of Pluto/Mercury*/
+	hailo15_dram_cfg.number_of_enabled_ddrs = 1;
+
+	// Check existence and value of 'ddr_layout_mode' in device tree and setting ddr#_enabled accordingly
+	prop = fdt_getprop(gd->fdt_blob, node, "ddr_layout_mode", &len);
+	if (prop != NULL) {
+		switch(fdt32_to_cpu(*prop)) {
+		case DDR0_DDR1_LEGACY_LINEAR_MODE:
+		case DDR0_DDR1_INTERLEAVING_512B_MODE:
+		case DDR0_DDR1_INTERLEAVING_256B_MODE:
+		case DDR0_DDR1_INTERLEAVING_4KB_MODE:
+			hailo15_dram_cfg.number_of_enabled_ddrs = 2;
+			break;
+		case ONLY_DDR0_ENABLED_MODE:
+			hailo15_dram_cfg.number_of_enabled_ddrs = 1;
+			break;
+		case ONLY_DDR1_ENABLED_MODE:
+			hailo15_dram_cfg.number_of_enabled_ddrs = 1;
+			break;
+		default:
+			printf("Error: invalid ddr_layout_mode value %x.\n", fdt32_to_cpu(*prop));
+			return -EINVAL;
+		}
+	}else{
+		// If ddr_layout_mode property does not exist(PLT or MERC), we set it as DDR0_ENABLED
+		hailo15_dram_cfg.number_of_enabled_ddrs = 1;
+	}
+
 	hailo15_dram_cfg.bank_total_size = hailo15_dram_cfg.rank_capacity * hailo15_dram_cfg.num_of_ranks;
 	hailo15_dram_cfg.bank_usable_size = hailo15_dram_cfg.bank_total_size;
 	if (hailo15_dram_cfg.ecc_enable) {
 		hailo15_dram_cfg.bank_usable_size = hailo15_dram_cfg.bank_total_size * 7ULL / 8ULL;
 	}
+	hailo15_dram_cfg.bank_usable_size *= hailo15_dram_cfg.number_of_enabled_ddrs;
 
 	return 0;
 }

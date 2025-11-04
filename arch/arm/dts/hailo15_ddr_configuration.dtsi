@@ -23,17 +23,25 @@
 #else
         ecc_mode = <DDR_CTRL_ECC_MODE_DISABLED>;
 #endif
-        bist_enable = <1>;
-        operational_freq = <2>;
-        dram_auto_detect_en = <0>;
-        assembled_dram_pn = "";
-        layout_swizzling_config = <0x06173452 0x21043576 0x52016437 0x56247310>;
-        layout_byte_swap = <0x3 0x2 0x1 0x0>;
-        stop_before_controller_start = <0>;
-        f1_frequency = <1600000000>;
-        f2_frequency = <2133000000>;
-        periodic_io_calibration_disable = <0>;
-        dram_auto_low_power_mode = <DRAM_AUTO_LOW_POWER_MODE_AUTOMATIC_INTERFACE>;
-        ddr_phy_low_power_mode = <DDR_PHY_LOW_POWER_MODE_LIGHT_SLEEP>;
-    };
+		bist_enable = <1>;
+		operational_freq = <2>;
+		dram_auto_detect_en = <0>;
+		assembled_dram_pn = "";
+		layout_swizzling_config = <0x8 0x06173452 0x8 0x21043576 0x8 0x52016437 0x8 0x56247310>;
+		layout_byte_swap = <0x3 0x2 0x1 0x0>;
+		stop_before_controller_start = <0>;
+		f1_frequency = <1600000000>;
+		f2_frequency = <2133000000>;
+		temperature_poll_period_ms = <1000>;
+		temperature_retraining_threshold_millicelsius = <5000>;
+		periodic_io_calibration_disable = <0>;
+		periodic_vref_training_enable = <0>;
+		periodic_calvl_training_enable = <0>;
+		periodic_wrlvl_training_enable = <0>;
+		periodic_rdlvl_training_enable = <0>;
+		periodic_rdlvl_gate_training_enable = <0>;
+		periodic_wdqlvl_training_enable = <0>;
+		dram_auto_low_power_mode = <DRAM_AUTO_LOW_POWER_MODE_AUTOMATIC_INTERFACE>;
+		ddr_phy_low_power_mode = <DDR_PHY_LOW_POWER_MODE_LIGHT_SLEEP>;
+	};
 };

@@ -1,13 +1,13 @@
-if TARGET_HAILO10_M2_DEVEL
+if TARGET_HAILO10_SBC_REV3
 
 config SYS_BOARD
-	default "hailo10-m2-devel"
+	default "hailo10-sbc-rev3"
 
 config SYS_VENDOR
 	default "hailo"
 
 config SYS_CONFIG_NAME
-	default "hailo10-m2-devel"
+	default "hailo10-sbc-rev3"
 	help
 	  This option contains information about board configuration name.
 	  Based on this option include/configs/<CONFIG_SYS_CONFIG_NAME>.h header

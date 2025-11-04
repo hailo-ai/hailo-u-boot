@@ -51,7 +51,8 @@
 enum scmi_hailo_notification_id {
     SCMI_HAILO_NOC_MEASUREMENT_TRIGGER_NOTIFICATION_ID = 0,
     SCMI_HAILO_NOC_MEASUREMENT_ENDED_NOTIFICATION_ID = 1,
-    SCMI_HAILO_NOTIFICATION_COUNT = 2
+    SCMI_HAILO_CRC_ERROR_NOTIFICATION_ID = 2,
+    SCMI_HAILO_NOTIFICATION_COUNT = 3
 };
 
 /*********************************************
@@ -240,6 +241,15 @@ struct scmi_hailo_noc_measurement_trigger_notification {
 struct scmi_hailo_noc_measurement_ended_notification {
     uint16_t sample_start_index;
     uint16_t sample_end_index;
+} __packed;
+
+/**************************************************
+ * CRC-error notification definitions *
+ **************************************************/
+
+struct scmi_hailo_crc_error_notification {
+    uint16_t csm_unit_idx;
+    uint16_t csm_channel_idx;
 } __packed;
 
 /****************************************************

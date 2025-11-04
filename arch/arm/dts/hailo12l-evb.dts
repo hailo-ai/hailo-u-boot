@@ -1,3 +1,14 @@
 #include "hailo12l-base.dtsi"
 #include "hailo15_ddr_configuration.dtsi"
 #include "hailo12l_ddr_MT53E1G32D2FW-046-C_regconfig_4GB_LP4X.dtsi"
+
+
+&hailo_boot_info {
+	ddr_config {
+		bist_enable = <0>;
+		working_mode = <DDR_WORKING_MODE_NORMAL>;
+		ddr_layout_mode = <ONLY_DDR0_ENABLED_MODE>;
+		layout_swizzling_config_0 = <0x6 0x28173045 0x8 0x31746052 0x2 0x08653417 0x1 0x87652403>;
+		layout_swizzling_config_1 = <0x3 0x72145086 0x3 0x06478215 0x7 0x53480261 0x3 0x52047861>;
+	};
+};

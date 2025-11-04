@@ -7,7 +7,14 @@
 
 #include "hailo15l-base.dtsi"
 #include "hailo15_ddr_configuration.dtsi"
-#include "hailo15l_ddr_MT53E1G32D2FW-046_regconfig_4GB.dtsi"
+#include "hailo15l_ddr_MT53E1G32D2FW-046-C_regconfig_4GB_LP4.dtsi"
+#include <dt-bindings/net/mscc-phy-vsc8531.h>
+
+&hailo_boot_info {
+    ddr_config {
+        layout_swizzling_config = <0x67431052 0x67305142 0x25104763 0x62534071>;
+    };
+};
 
 &sdio0 {
     status = "okay";
@@ -27,6 +34,7 @@
 };
 
 &sdio1 {
+    status = "okay";
     non-removable;
     phy-config {
             card-is-emmc = <0x1>;
@@ -42,6 +50,20 @@
 
 &macb {
     status = "okay";
+    phy-mode = "rgmii-id";
+    phy-handle = <&phy0>;    
+    mdio {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        phy0: ethernet-phy@0 {
+            compatible = "ethernet-phy-id0007.0572";
+            reg = <0>;
+            vsc8531,rx-clk-skew = <VSC8531_RGMII_CLK_DELAY_1_7_NS>;
+            vsc8531,tx-clk-skew = <VSC8531_RGMII_CLK_DELAY_1_7_NS>;
+            status = "okay";
+        };
+    };
 };
 
 &wda53 {
@@ -57,5 +79,9 @@
 };
 
 &i2c_1 {
+    status = "okay";
+};
+
+&xspi {
     status = "okay";
 };

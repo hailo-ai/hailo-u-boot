@@ -324,24 +324,46 @@ static int spl_load_fit_image(struct spl_load_info *info, ulong sector,
 
 	load_ptr = map_sysmem(load_addr, length);
 	if (IS_ENABLED(CONFIG_SPL_GZIP) && image_comp == IH_COMP_GZIP) {
+		ulong entry_point;
+		void *decomp_ptr;
+		
+		/* Get entry point for kernel decompression destination */
+		if (!fit_image_get_entry(fit, node, &entry_point) && entry_point != load_addr) {
+			/* Decompress to entry point if different from load address */
+			decomp_ptr = map_sysmem(entry_point, CONFIG_SYS_BOOTM_LEN);
+			debug("Decompressing: from(0x%lx) -> to(0x%lx), src=0x%p, decomp_ptr=0x%p\n",
+				load_addr, entry_point, src, decomp_ptr);
+		} else {
+			/* Fallback to original behavior */
+			decomp_ptr = load_ptr;
+			entry_point = load_addr;
+			debug("Decompressing: in-place(0x%lx), src=0x%p, decomp_ptr=0x%p\n",
+				load_addr, src, decomp_ptr);
+		}
+		
 		size = length;
-		if (gunzip(load_ptr, CONFIG_SYS_BOOTM_LEN, src, &size)) {
-			puts("Uncompressing error\n");
+		if (gunzip(decomp_ptr, CONFIG_SYS_BOOTM_LEN, src, &size)) {
+			printf("Uncompressing error: final_size=0x%lx\n", size);
 			return -EIO;
 		}
+		debug("Decompression successful: final_size=0x%lx\n", size);
 		length = size;
+		/* Update load_addr to entry_point if we decompressed there */
+		if (entry_point != load_addr) {
+			load_addr = entry_point;
+		}
 	} else {
 		memcpy(load_ptr, src, length);
 	}
 
 	if (image_info) {
-		ulong entry_point;
+		ulong entry_point_check;
 
 		image_info->load_addr = load_addr;
 		image_info->size = length;
 
-		if (!fit_image_get_entry(fit, node, &entry_point))
-			image_info->entry_point = entry_point;
+		if (!fit_image_get_entry(fit, node, &entry_point_check))
+			image_info->entry_point = entry_point_check;
 		else
 			image_info->entry_point = FDT_ERROR;
 	}
