@@ -364,13 +364,27 @@ static int cdns_xspi_wait_for_controller_idle(struct cdns_xspi_dev *cdns_xspi)
 static int cdns_xspi_wait_for_cmd_complete(struct cdns_xspi_dev *cdns_xspi)
 {
 	u32 cmd_status;
+	u32 irq_status;
+	int ret;
 
-	return readl_relaxed_poll_timeout(cdns_xspi->iobase +
+	ret = readl_relaxed_poll_timeout(cdns_xspi->iobase +
 					  CDNS_XSPI_CMD_STATUS_REG,
 					  cmd_status,
 					  ((cmd_status &
 					    CDNS_XSPI_CMD_STATUS_COMPLETED) != 0),
 					  1000);
+
+	irq_status = readl(cdns_xspi->iobase + CDNS_XSPI_INTR_STATUS_REG);
+	if (!ret) {
+		/*
+		 * Need to clear the interrupt after read,
+		 * writing 1 to the clear the bit.
+		 */
+		writel(irq_status & CDNS_XSPI_STIG_DONE,
+		       cdns_xspi->iobase + CDNS_XSPI_INTR_STATUS_REG);
+	}
+
+	return ret;
 }
 
 static int cdns_xspi_wait_for_sdma_trig(struct cdns_xspi_dev *cdns_xspi)
