@@ -1,3 +1,3 @@
 # SPDX-License-Identifier: GPL-2.0
 
-obj-y += hailo15l_sbc_board.o
+obj- += dummy.o
