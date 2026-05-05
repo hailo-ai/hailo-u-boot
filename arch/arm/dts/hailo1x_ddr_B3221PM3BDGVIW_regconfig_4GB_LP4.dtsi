@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * dts file for Hailo15 SoC
+ *
+ * Copyright (c) 2019-2023 Hailo Technologies Ltd. All rights reserved.
+ */
+
+&hailo_boot_info {
+    ddr_config {
+        assembled_dram_pn = "B3221PM3BDGVIW_regconfig_4GB_LP4";
+    };
+};

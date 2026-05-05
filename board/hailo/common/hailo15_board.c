@@ -528,54 +528,6 @@ static void fixup_linux_cma_size(void *fdt, uint64_t new_size)
     }
 }
 
-#ifdef CONFIG_MULTI_DTB_FIT
-/**
- * board_fit_config_name_match() - Check for a matching board name in main U-Boot
- *
- * This is used when U-Boot loads a FIT containing multiple device tree files
- * for the kernel and wants to work out which one to use based on DRAM size.
- * The description of each configuration is passed to this function.
- *
- * @name: Device tree description
- * @return 0 if this device tree should be used, non-zero to try the next
- */
-int board_fit_config_name_match(const char *name)
-{
-    /* DRAM size-based DTB selection for kernel boot */
-    phys_size_t ram_size = gd->ram_size;
-    
-    debug("Main U-Boot: Checking config '%s' for DRAM size: 0x%llx (%llu MB)\n", 
-          name, (u64)ram_size, (u64)(ram_size >> 20));
-    printf("*** DEBUG: board_fit_config_name_match called with: '%s', RAM: %llu MB ***\n", 
-           name, (u64)(ram_size >> 20));
-    
-    /* Define your DRAM size thresholds here - adjust according to your hardware */
-    if (ram_size <= SZ_1G) {
-        /* Use 1GB DTB configuration for kernel */
-        if (strstr(name, "0 Linux kernel, FDT blob")) {
-            debug("Main U-Boot: Selected 1GB DTB configuration: %s\n", name);
-            return 0;
-        }
-    } else {
-        /* Use 2GB DTB configuration for kernel */
-        if (strstr(name, "1 Linux kernel, FDT blob")) {
-            debug("Main U-Boot: Selected 2GB DTB configuration: %s\n", name);
-            return 0;
-        }
-    }
-    
-    /* Fallback: check for generic/default configuration */
-    if (strstr(name, "default") || strstr(name, "generic")) {
-        debug("Main U-Boot: Using fallback DTB configuration: %s\n", name);
-        return 0;
-    }
-    
-    debug("Main U-Boot: No matching DTB configuration found for DRAM size %llu MB, config: %s\n", 
-          (u64)(ram_size >> 20), name);
-    return -ENOENT;
-}
-#endif /* CONFIG_MULTI_DTB_FIT */
-
 static void disable_hailo_cma(void *fdt)
 {
     const char *node_path = "/reserved-memory/hailo_media_buf,cma";
