@@ -6,7 +6,8 @@
  */
 
 #include "hailo1x_ddr_MT53E1G32D2FW-046-C_regconfig_4GB_LP4_patch.dtsi"
-#include "hailo15l_ddr_MT53E256M32D1-046_regconfig_1GB_patch.dtsi"
-#include "hailo15l_ddr_MT53E256M32D1-046_regconfig_1GB_LP4x_patch.dtsi"
 #include "hailo15l_ddr_MT53E512M32D1-046_regconfig_2GB_LP4X_patch.dtsi"
 #include "hailo15l_ddr_MT53E512M32D1-046_regconfig_2GB_patch.dtsi"
+#include "hailo1x_ddr_MT53E256M32D1-046_regconfig_1GB_LP4_patch.dtsi"
+#include "hailo1x_ddr_MT53E256M32D1-046_regconfig_1GB_LP4X_patch.dtsi"
+#include "hailo1x_ddr_MT53E256M32D2-046_regconfig_1GB_LP4X_patch.dtsi"
