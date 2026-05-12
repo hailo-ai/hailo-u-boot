@@ -14,7 +14,8 @@
     BOOTMENU_COMMON \
     "default_spl_boot_source=ram\0" \
     "spl_boot_source=ram\0" \
-    "bootmenu_0=Boot from RAM=run bootargs_base bootargs_ram && bootm ${fitimage_ram_addr} ${fs_ram_addr}:0x10000000\0"
+    "boot_ram_size=0x10000000\0" \
+    "bootmenu_0=Boot from RAM=run boot_ram\0"
 
 #ifdef CONFIG_SPL_BUILD
 
