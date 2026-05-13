@@ -5,12 +5,12 @@
  * Configuration for SBC Hailo15L.
  */
 
-#ifndef __HAILO15L_SBC_H
-#define __HAILO15L_SBC_H
+#ifndef __HAILO15L_SBC_NAND_H
+#define __HAILO15L_SBC_NAND_H
 
-#define SPL_BOOT_SOURCE "mmc2_boot"
+#define SPL_BOOT_SOURCE "nor"
 #define SWUPDATE_MMC_INDEX "1"
 
 #include "hailo15l_common.h"
 
-#endif /* __HAILO15L_SBC_H */
+#endif /* __HAILO15L_SBC_NAND_H */
