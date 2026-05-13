@@ -1,0 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * dts file for Hailo10 (board-sku-23).
+ *
+ * Copyright (c) 2019-2025 Hailo Technologies Ltd. All rights reserved.
+ */
+#include "hailo10-m2-base.dtsi"
+#include "hailo1x_ddr_MT53E2G32D4DE-046_regconfig_8GB_LP4.dtsi"
