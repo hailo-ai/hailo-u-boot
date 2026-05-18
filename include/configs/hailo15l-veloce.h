@@ -13,7 +13,7 @@
 #define BOOTMENU \
     "default_spl_boot_source=" SPL_BOOT_SOURCE "\0" \
     "spl_boot_source=" SPL_BOOT_SOURCE "\0" \
-    "boot_ram=run bootargs_base bootargs_ram && bootm ${fitimage_ram_addr} ${fs_ram_addr}:0x5000000\0"
+    "boot_ram_size=0x5000000\0"
 
 #ifdef CONFIG_SPL_BUILD
 
