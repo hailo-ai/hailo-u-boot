@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * dts file for Hailo15l SBC SoC
+ *
+ * Copyright (c) 2019-2026 Hailo Technologies Ltd. All rights reserved.
+ */
+
+/*
+* Note: This device tree applies only to the Hailo15l SBC.
+* It is not recommended to be used as a reference device tree.
+*
+* For instructions on creating a custom device tree, please refer to the Hailo OS User Guide:
+* https://hailo.ai/developer-zone/documentation/
+*/
+
+#include "hailo15l-sbc.dts"
+
+&xspi {
+    spi0_flash2: flash@2 {
+        #address-cells = <1>;
+        #size-cells = <1>;
+        compatible = "spi-nand";
+        spi-max-frequency = <6250000>; /* 90Mhz in DTR, 166Mhz in STR */
+        spi-rx-bus-width = <4>;
+        spi-tx-bus-width = <4>;
+        reg = <2>;        /* chip select */
+    };
+};

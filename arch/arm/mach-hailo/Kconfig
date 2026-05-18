@@ -245,6 +245,26 @@ config HAILO15_DDR_ENABLE_ECC
 config HAILO15_EMMC_8BIT
 	bool "Hailo15 emmc 8bit"
 
+config HAILO_NAND_BOOT
+	bool "Hailo NAND boot"
+	help
+	  Hailo NAND boot
+	  Enable this option to boot from NAND flash
+	select SPI
+	select MTD
+	select DM_MTD
+	select MTD_NAND_CORE
+	select MTD_SPI_NAND
+	select MTD_PARTITIONS
+	select DM_SPI
+	select DM_SPI_FLASH
+	select LZO
+	select ZLIB
+	select CMD_MTD
+	select CMD_MTDPARTS
+	select CMD_UBI
+	select CMD_UBIFS
+
 config MAC_ADDR_IN_SPIFLASH
 	bool "MAC address in SPI Flash"
 	help
@@ -359,6 +379,11 @@ config TARGET_HAILO15L_SBC
 	bool "Hailo15L SBC"
 	select MACH_HAILO15L
 
+config TARGET_HAILO15L_SBC_NAND
+	bool "Hailo15L SBC NAND flash"
+	select MACH_HAILO15L
+	select HAILO_NAND_BOOT
+
 config TARGET_HAILO10_M2
 	bool "Hailo10 M.2"
 	select MACH_HAILO10
@@ -406,6 +431,7 @@ source "board/hailo/hailo15-sbc-rev3-1/Kconfig"
 source "board/hailo/hailo15l-oregano/Kconfig"
 source "board/hailo/hailo15l-evb/Kconfig"
 source "board/hailo/hailo15l-sbc/Kconfig"
+source "board/hailo/hailo15l-sbc-nand/Kconfig"
 source "board/hailo/hailo10-m2/Kconfig"
 source "board/hailo/hailo10-sbc-rev3/Kconfig"
 source "board/hailo/hailo10-usb-dongle/Kconfig"
