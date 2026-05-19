@@ -7,6 +7,6 @@
 
 &hailo_boot_info {
     ddr_config {
-        assembled_dram_pn = "MT53E256M32D1-046_regconfig_1GB";
+        assembled_dram_pn = "MT53E256M32D1-046_regconfig_1GB_LP4";
     };
 };
