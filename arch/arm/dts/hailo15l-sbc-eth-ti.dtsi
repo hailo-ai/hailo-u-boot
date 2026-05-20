@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Optional include for hailo15l-sbc U-Boot DT — alternate ETH PHY
+ * (TI DP83825I, RMII, 100 Mbps) in place of the default Microsemi
+ * VSC8531 (RGMII, 1 Gbps).
+ *
+ * Include AFTER hailo15l-sbc.dts (or your customer base .dts) when
+ * DP83825I silicon is on the board. Without this include, U-Boot's
+ * macb driver leaves the eth domain in RGMII mode (matching the
+ * default VSC8531 wiring); with it, macb asks the SCU to switch the
+ * SoC eth clock topology to RMII via scmi_hailo_set_eth_rmii().
+ *
+ * The CONFIG_PHY_TI / CONFIG_PHY_TI_GENERIC symbols are enabled by
+ * default in the BSP's hailo15l_sbc_defconfig; no extra Kconfig
+ * action is required.
+ */
+
+&macb {
+	phy-mode = "rmii";
+};
+
+&phy0 {
+	/* U-Boot's macb scans MDIO regardless of compatible; setting the
+	 * generic clause-22 string here is purely a visible marker that the
+	 * dtsi reached the build (mirrors the Linux side).
+	 */
+	compatible = "ethernet-phy-ieee802.3-c22";
+	/delete-property/ vsc8531,rx-clk-skew;
+	/delete-property/ vsc8531,tx-clk-skew;
+};
