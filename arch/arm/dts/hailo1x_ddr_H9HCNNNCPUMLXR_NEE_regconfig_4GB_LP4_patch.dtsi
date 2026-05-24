@@ -8,19 +8,39 @@
 &hailo_boot_info {
     ddr_config {
         ddr_patches {
-            MT53E2G32D4DE-046_regconfig_8GB_LP4 {
+            H9HCNNNCPUMLXR_NEE_regconfig_4GB_LP4 {
                 reg_config_version = "2.5";
-                mr0 = <0xb9>;
-                mr5 = <0xff>;
-                mr6 = <0x7>;
-                mr8 = <0x18>;
+                mr0 = <0x39>;
+                mr5 = <0x6>;
+                mr6 = <0x6>;
+                mr8 = <0x10>;
                 mr12 = <0x4d>;
                 num_of_ranks = <2>;
                 DDR_ctrl_registers = <
+                    39 0x09040008    //  39: TWTR_F0:RW:24:6:=0x09 TRAS_MIN_F0:RW:16:8:=0x04 TRC_F0:RW:0:9:=0x0007
+                    40 0x0D000204    //  40: TRRD_F1:RW:24:8:=0x0d TFAW_F0:RW:8:9:=0x0002 TRP_F0:RW:0:8:=0x03
+                    54 0x08010100    //  54: TDAL_F0:RW:24:8:=0x07 TRAS_LOCKOUT:RW:16:1:=0x01 CONCURRENTAP:RW:8:1:=0x01 AP:RW:0:1:=0x00
+                    55 0x0404503C    //  55: TRP_AB_F0_0:RW:24:8:=0x03 BSTLEN:RW_D:16:5:=0x04 TDAL_F2:RW:8:8:=0x50 TDAL_F1:RW:0:8:=0x3c
+                    56 0x22042D22    //  56: TRP_AB_F1_1:RW:24:8:=0x22 TRP_AB_F0_1:RW:16:8:=0x03 TRP_AB_F2_0:RW:8:8:=0x2d TRP_AB_F1_0:RW:0:8:=0x22
+                    60 0x0000000E    //  60: TRFC_F0:RW:0:10:=0x0013
+                    62 0x000001C0    //  62: TRFC_F1:RW:0:10:=0x0260
+                    64 0x00000256    //  64: TRFC_F2:RW:0:10:=0x032b
+                    67 0x00030000    //  67: TRFC_PB_F0:RW:16:10:=0x0005 PBR_NUMERIC_ORDER:RW:8:1:=0x00 PBR_EN:RW:0:1:=0x00
+                    68 0x00700010    //  68: TRFC_PB_F1:RW:16:10:=0x0098 TREFI_PB_F0:RW:0:16:=0x0010
+                    69 0x00950304    //  69: TRFC_PB_F2:RW:16:10:=0x00cb TREFI_PB_F1:RW:0:16:=0x0304
+                    79 0x000F000F    //  79: TXSNR_F0:RW:16:16:=0x0014 TXSR_F0:RW:0:16:=0x0014
+                    80 0x01CC01CC    //  80: TXSNR_F1:RW:16:16:=0x026c TXSR_F1:RW:0:16:=0x026c
+                    81 0x02660266    //  81: TXSNR_F2:RW:16:16:=0x033b TXSR_F2:RW:0:16:=0x033b
+                    83 0x03010503    //  83: TCMDCKE_F0:RW:24:5:=0x03 TCSCKEH_F0:RW:16:5:=0x01 TCKELPD_F0:RW:8:5:=0x03 TESCKE_F0:RW:0:3:=0x03
+                    85 0x03030803    //  85: TCMDCKE_F1:RW:24:5:=0x03 TCSCKEH_F1:RW:16:5:=0x03 TCKELPD_F1:RW:8:5:=0x0c TESCKE_F1:RW:0:3:=0x03
+                    87 0x04040B04    //  87: TCMDCKE_F2:RW:24:5:=0x04 TCSCKEH_F2:RW:16:5:=0x04 TCKELPD_F2:RW:8:5:=0x10 TESCKE_F2:RW:0:3:=0x04
                     178 0x24242B36    //  178: MR12_DATA_F2_0:RW:24:8:=0x00 MR12_DATA_F1_0:RW:16:8:=0x00 MR12_DATA_F0_0:RW:8:8:=0x00 MR11_DATA_F2_0:RW:0:8:=0x00
                     186 0x2BC82424    //  186: MR14_DATA_F0_1:RW:24:8:=0x00 MR13_DATA_1:RW:16:8:=0x00 MR12_DATA_F2_1:RW:8:8:=0x00 MR12_DATA_F1_1:RW:0:8:=0x00
-                    275 0x3FFF2000    //  275: CS_VAL_UPPER_1:RW:16:16:=0x3fff CS_VAL_LOWER_1:RW:0:16:=0x2000
-                    277 0x000003FF    //  277: RESERVED:RW:24:5:=0x00 CS_LOWER_ADDR_EN:RW:16:1:=0x00 CS_MSK_1:RW:0:16:=0x03ff
+                    272 0x01010000    //  272: ROW_DIFF_1:RW:24:3:=0x00 ROW_DIFF_0:RW:16:3:=0x00 BANK_DIFF_1:RW:8:2:=0x00 BANK_DIFF_0:RW:0:2:=0x00
+                    274 0x00000FFF    //  274: ROW_START_VAL_0:RW:16:3:=0x00 CS_VAL_UPPER_0:RW:0:16:=0x1fff
+                    275 0x1FFF1000    //  275: CS_VAL_UPPER_1:RW:16:16:=0x3fff CS_VAL_LOWER_1:RW:0:16:=0x2000
+                    276 0x01FF0000    //  276: CS_MSK_0:RW:16:16:=0x03ff CS_MAP_NON_POW2:RW:8:2:=0x00 ROW_START_VAL_1:RW:0:3:=0x00
+                    277 0x000001FF    //  277: RESERVED:RW:24:5:=0x00 CS_LOWER_ADDR_EN:RW:16:1:=0x00 CS_MSK_1:RW:0:16:=0x03ff
                     291 0x01010000    //  291: DEVICE0_BYTE0_CS1:RW:24:4:=0x01 MEMDATA_RATIO_1:RW:16:3:=0x01 DEVICE3_BYTE0_CS0:RW:8:4:=0x00 DEVICE2_BYTE0_CS0:RW:0:4:=0x00
                     292 0x00000004    //  292: Q_FULLNESS:RW:24:5:=0x00 DEVICE3_BYTE0_CS1:RW:16:4:=0x00 DEVICE2_BYTE0_CS1:RW:8:4:=0x00 DEVICE1_BYTE0_CS1:RW:0:4:=0x04
                 >;
@@ -29,10 +49,19 @@
                     14 0x0800000F    //  14: PI_TMRR:RW:24:4:=0x08 PI_SRX_LVL_TARGET_CS_EN:RW:16:1:=0x00 PI_RANK_NUM_PER_CKE:RW:8:5:=0x00 PI_CS_MAP:RW:0:4:=0x0f
                     29 0x0F000000    //  29: PI_WRLVL_CS_MAP:RW:24:4:=0x0f PI_WRLVL_ROTATE:RW:16:1:=0x00 PI_WRLVL_RESP_MASK:RW:8:4:=0x00 PI_WRLVL_DISABLE_DFS:RW:0:1:=0x00
                     45 0x000F0F00    //  45: PI_RDLVL_GATE_CS_MAP:RW:16:4:=0x0f PI_RDLVL_CS_MAP:RW:8:4:=0x0f PI_RDLVL_GATE_ROTATE:RW:0:1:=0x00
-                    55 0x0F000000    //  55: PI_CALVL_CS_MAP:RW:24:4:=0x0f PI_CALVL_ROTATE:RW:16:1:=0x00 PI_CALVL_DISABLE_DFS:RW:8:1:=0x00 PI_CALVL_ON_SREF_EXIT:RW:0:1:=0x00
                     67 0x0002010F    //  67: PI_WDQLVL_PERIODIC:RW:24:1:=0x00 PI_WDQLVL_VREF_NORMAL_STEPSIZE:RW:16:5:=0x02 PI_WDQLVL_VREF_INITIAL_STEPSIZE:RW:8:5:=0x04 PI_WDQLVL_CS_MAP:RW:0:4:=0x0f
+                    73 0x00080100    //  73: RESERVED:RW_D:24:4:=0x00 PI_TCCD:RW:16:5:=0x08 PI_ROW_DIFF:RW:8:3:=0x00 PI_BANK_DIFF:RW:0:2:=0x00
+                    169 0x000E4812    //  169: PI_TRFC_F0:RW:16:10:=0x0013 PI_CASLAT_LIN_F2:RW:8:7:=0x48 PI_WRLAT_F2:RW:0:7:=0x12
+                    171 0x000001C0    //  171: PI_TRFC_F1:RW:0:10:=0x0260
+                    173 0x00000256    //  173: PI_TRFC_F2:RW:0:10:=0x032b
                     199 0x28202D29    //  199: PI_CALVL_VREF_INITIAL_STOP_POINT_F1:RW:24:7:=0x1e PI_CALVL_VREF_INITIAL_START_POINT_F1:RW:16:7:=0x1a PI_CALVL_VREF_INITIAL_STOP_POINT_F0:RW:8:7:=0x1e PI_CALVL_VREF_INITIAL_START_POINT_F0:RW:0:7:=0x1a
                     200 0x01012820    //  200: PI_CALVL_VREF_DELTA_F1:RW:24:4:=0x01 PI_CALVL_VREF_DELTA_F0:RW:16:4:=0x01 PI_CALVL_VREF_INITIAL_STOP_POINT_F2:RW:8:7:=0x1e PI_CALVL_VREF_INITIAL_START_POINT_F2:RW:0:7:=0x1a
+                    218 0x04010504    //  218: PI_TWR_F0:RW:24:8:=0x04 PI_TWTR_F0:RW:16:6:=0x01 PI_TRCD_F0:RW:8:8:=0x05 PI_TRP_F0:RW:0:8:=0x03
+                    235 0x01CC000F    //  235: PI_TXSR_F1:RW:16:16:=0x026c PI_TXSR_F0:RW:0:16:=0x0014
+                    236 0x03030266    //  236: PI_TEXCKE_F1:RW:24:6:=0x03 PI_TEXCKE_F0:RW:16:6:=0x03 PI_TXSR_F2:RW:0:16:=0x033b
+                    241 0x0000000F    //  241: PI_TXSNR_F0:RW:0:16:=0x0014
+                    246 0x000001CC    //  246: PI_TXSNR_F1:RW:0:16:=0x026c
+                    251 0x01000266    //  251: RESERVED:RW:16:12:=0x0100 PI_TXSNR_F2:RW:0:16:=0x033b
                     278 0x00061224    //  278: PI_MR23_DATA_F1_0:RW:24:8:=0x00 PI_MR22_DATA_F1_0:RW+:16:8:=0x00 PI_MR14_DATA_F1_0:RW+:8:8:=0x4d PI_MR12_DATA_F1_0:RW+:0:8:=0x4d
                     280 0x00061224    //  280: PI_MR23_DATA_F2_0:RW:24:8:=0x00 PI_MR22_DATA_F2_0:RW+:16:8:=0x00 PI_MR14_DATA_F2_0:RW+:8:8:=0x4d PI_MR12_DATA_F2_0:RW+:0:8:=0x4d
                     284 0x00161224    //  284: PI_MR23_DATA_F1_1:RW:24:8:=0x00 PI_MR22_DATA_F1_1:RW+:16:8:=0x00 PI_MR14_DATA_F1_1:RW+:8:8:=0x4d PI_MR12_DATA_F1_1:RW+:0:8:=0x4d
