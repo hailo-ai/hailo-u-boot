@@ -62,7 +62,7 @@
     "bootargs_swupdate=run setup_swupdate_server_ip && run setup_swupdate_update_filename && run append_bootargs_swupdate_server && run append_bootargs_swupdate_params && run append_bootargs_swupdate_device\0" \
     "swupdate_load_mmc=run set_mmc" SWUPDATE_MMC_INDEX "_device_num && run load_fitimage_from_mmc && run load_swupdate_image_from_mmc\0" \
     "swupdate_load_tftp=run download_fitimage_to_ram && run download_swupdate_image_to_ram\0" \
-    "boot_swupdate=run bootargs_base bootargs_rw bootargs_nand_fitimage bootargs_swupdate && setenv shrink_cma 1 && setenv boot_ram_size ${swupdate_filesize} && run _do_boot_ram\0" \
+    "boot_swupdate=run bootargs_base bootargs_rw bootargs_swupdate && setenv bootargs ${bootargs} ${bootargs_swupdate_extra} && setenv shrink_cma 1 && setenv boot_ram_size ${swupdate_filesize} && run _do_boot_ram\0" \
     "setup_swupdate_sdio0_filesystem_device=setenv bootargs_swupdate_device ${bootargs_swupdate_device} SWUPDATE_FILESYSTEM_DEVICE=mmcblk0\0" \
     "setup_swupdate_sdio1_filesystem_device=setenv bootargs_swupdate_device ${bootargs_swupdate_device} SWUPDATE_FILESYSTEM_DEVICE=mmcblk1\0" \
     "setup_swupdate_flash_firmware_device=setenv bootargs_swupdate_device ${bootargs_swupdate_device} SWUPDATE_FIRMWARE_DEVICE=mtdblock0 SWUPDATE_FW_ENV_DEVICE=mtdblock0\0" \
@@ -79,7 +79,7 @@
     "boot_swupdate_sdio0_ab=run setup_swupdate_sdio0_filesystem_device && setenv swupdate_update_modes init-partitions-dual,init-scu-bl,copy-a,copy-b && run swupdate_load_tftp && run boot_swupdate\0" \
     "boot_swupdate_sdio1_only_a=run setup_swupdate_sdio1_filesystem_device && setenv swupdate_update_modes init-partitions-single,init-scu-bl,copy-a && run swupdate_load_tftp && run boot_swupdate\0" \
     "boot_swupdate_sdio1_ab=run setup_swupdate_sdio1_filesystem_device && setenv swupdate_update_modes init-partitions-dual,init-scu-bl,copy-a,copy-b && run swupdate_load_tftp && run boot_swupdate\0" \
-    "boot_swupdate_nand_flash_only_a=run setup_swupdate_flash_firmware_device && run setup_swupdate_nand_flash_filesystem_device && setenv swupdate_update_modes init-partitions-single,copy-a && run swupdate_load_tftp && run boot_swupdate\0"
+    "boot_swupdate_nand_flash_only_a=run setup_swupdate_flash_firmware_device && run setup_swupdate_nand_flash_filesystem_device && setenv swupdate_update_modes init-partitions-single,copy-a && setenv bootargs_swupdate_extra ubi.mtd=2,0,5 ubi.mtd=3 && run swupdate_load_tftp && run boot_swupdate\0"
 
 #define UPDATE_PARTITIONS_COMMAND "update_partitions=run update_uboot && run update_fitimage && run update_swupdate_image && run update_rootfs\0"
 
@@ -199,7 +199,6 @@
     "bootargs_ro=setenv bootargs ${bootargs} ro\0" \
     "bootargs_board=setenv bootargs ${bootargs} ${bootargs_board_options}\0" \
     "bootargs_ram=setenv bootargs ${bootargs} root=/dev/ram0 ramdisk_size=${ramdisk_size}\0" \
-    "bootargs_nand_fitimage=setenv bootargs ${bootargs} ubi.mtd=2,0,5\0" \
     "bootargs_mmc=setenv bootargs ${bootargs} root=/dev/mmcblk${device_num}p${mmc_rootfs_partition}\0" \
     "bootargs_nand_flash=setenv bootargs ${bootargs} ubi.mtd=3 root=ubi0:rootfs rootfstype=ubifs\0" \
     "bootargs_nfs=setenv bootargs ${bootargs} root=/dev/nfs rootfstype=nfs ip=${ipaddr} nfsroot=${serverip}:${nfsroot},v3,tcp\0" \
