@@ -7,6 +7,6 @@
 
 &hailo_boot_info {
     ddr_config {
-        assembled_dram_pn = "H9HCNNNBKUMLXR_NEE_regconfig_2GB";
+        assembled_dram_pn = "BWMEDX32H2A_regconfig_4GB_LP4X";
     };
 };

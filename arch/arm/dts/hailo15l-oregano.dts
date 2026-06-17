@@ -7,7 +7,7 @@
 
 #include "hailo15l-base.dtsi"
 #include "hailo15_ddr_configuration.dtsi"
-#include "hailo15_ddr_MT53E512M32D1-046_regconfig_2GB.dtsi"
+#include "hailo1x_ddr_MT53E512M32D1-046_regconfig_2GB_LP4.dtsi"
 
 &sdio0 {
     status = "okay";
