@@ -163,7 +163,7 @@ if MACH_HAILO1X
 
 config CORE_IMAGE_NAME
 	string "Image Name"
-	default "core-image-minimal"
+	default "core-image-hailo-dev"
 
 config LMB_MAX_REGIONS
 	default 32

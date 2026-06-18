@@ -5,7 +5,7 @@
  * Copyright (c) 2019-2023 Hailo Technologies Ltd. All rights reserved.
  */
 
-#include "hailo15_ddr_H9HCNNNBKUMLXR_NEE_regconfig_2GB_patch.dtsi"
+#include "hailo1x_ddr_H9HCNNNBKUMLXR_NEE_regconfig_2GB_LP4_patch.dtsi"
 #include "hailo1x_ddr_MT53E1G32D2FW-046-B_regconfig_4GB_LP4X_patch.dtsi"
 #include "hailo1x_ddr_MT53E1G32D2FW-046-C_regconfig_4GB_LP4X_patch.dtsi"
 #include "hailo1x_ddr_MT53E1G32D2FW-046-C_regconfig_4GB_LP4_patch.dtsi"
@@ -13,7 +13,10 @@
 #include "hailo1x_ddr_MT53E1G32D2FW-046-B_regconfig_4GB_LP4_patch.dtsi"
 #include "hailo1x_ddr_MT53E2G32D4DE-046_regconfig_8GB_LP4X_patch.dtsi"
 #include "hailo1x_ddr_MT53E2G32D4DE-046_regconfig_8GB_LP4_patch.dtsi"
-#include "hailo15_ddr_MT53E512M32D1-046_regconfig_2GB_patch.dtsi"
-#include "hailo15l_ddr_MT53E512M32D1-046_regconfig_2GB_LP4X_patch.dtsi"
+#include "hailo1x_ddr_MT53E512M32D1-046_regconfig_2GB_LP4_patch.dtsi"
+#include "hailo1x_ddr_MT53E512M32D1-046_regconfig_2GB_LP4X_patch.dtsi"
 #include "hailo1x_ddr_H54G46CYRBX267_regconfig_2GB_LP4X_patch.dtsi"
 #include "hailo1x_ddr_RS2G32LV4D4BDT_regconfig_8GB_LP4_patch.dtsi"
+#include "hailo1x_ddr_MT53E256M32D1-046_regconfig_1GB_LP4_patch.dtsi"
+#include "hailo1x_ddr_MT53E256M32D1-046_regconfig_1GB_LP4X_patch.dtsi"
+#include "hailo1x_ddr_BWMEDX32H2A_regconfig_4GB_LP4X_patch.dtsi"
