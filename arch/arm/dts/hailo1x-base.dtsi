@@ -12,7 +12,7 @@
 #include <dt-bindings/soc/hailo15_scmi_api.h>
 #include <dt-bindings/soc/hailo1x_product.h>
 
-/* reserved memory for secondary cores' spin-table */
+/* reserved memory for platform scratch page */
 /memreserve/ 0x800FF000 0x0001000;
 /* reserved memory for linux device tree and overlay */
 /memreserve/ 0x80800000 0x100000;
