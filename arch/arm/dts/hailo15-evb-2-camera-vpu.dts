@@ -7,6 +7,20 @@
 
 #include "hailo15-evb-base.dtsi"
 
+/* The camera buses. This board never needed i2c from U-Boot before sensor
+ * detection, so both are enabled only for it; Linux enables them from its own
+ * DT either way. Port 1 is on i2c_2, as on the SBC.
+ */
+#ifdef CONFIG_HAILO_SENSOR_DETECT
+&i2c_0 {
+    status = "okay";
+};
+
+&i2c_2 {
+    status = "okay";
+};
+#endif
+
 &sdio1 {
     status = "okay";
 };

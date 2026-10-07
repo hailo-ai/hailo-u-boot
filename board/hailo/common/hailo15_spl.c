@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Copyright (c) 2019-2023 Hailo Technologies Ltd. All rights reserved. 
+ * Copyright (c) 2019-2026 Hailo Technologies Ltd. All rights reserved.
  */
 
 #include <linux/bitops.h>
@@ -11,6 +11,7 @@
 #include <init.h>
 #include <cpu_func.h>
 #include <dm.h>
+#include <dt-bindings/soc/hailo15_scmi_api.h>
 #include "scmi_hailo.h"
 #include "hailo15_board.h"
 #include "scmi_hailo_protocol.h"
@@ -51,7 +52,7 @@ int hailo_sku_info_get(void)
 
     hailo_sku_product_id = sku_id.product;
     hailo10_sku_board_id = sku_id.board;
-    if (hailo10_sku_board_id == 0xFFFF /* HAILO10_SCMI_BOARD_SKU_ID__INVALID */) {
+    if (hailo10_sku_board_id == HAILO10_SCMI_BOARD_SKU_ID__INVALID) {
         hailo10_sku_board_id = 0;
     }
 

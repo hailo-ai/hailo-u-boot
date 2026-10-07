@@ -175,6 +175,36 @@ int board_init(void)
     return 0;
 }
 
+/*
+ * H15L SBC ships as 1GB and 2GB variants needing different device trees, and
+ * ${board_dtb} otherwise defaults to ${board}, which is the 2GB one. 
+ *
+ * It is called from both board_late_init() implementations- the weak one below 
+ * and the strong one in hailo15_sensor_boards.c, so a 1GB board picks the right 
+ * DTB whether or not sensor detection is compiled in.
+ */
+void hailo15_select_board_dtb(void)
+{
+#if defined(CONFIG_TARGET_HAILO15L_SBC)
+    if (gd->ram_size <= SZ_1G)
+        env_set("board_dtb", "hailo15l-sbc-1gb");
+#endif
+}
+
+/*
+ * Fallback for CONFIG_BOARD_LATE_INIT being set with nothing providing the
+ * hook: the real board_late_init() is in hailo15_sensor_boards.c and is
+ * compiled only when CONFIG_HAILO_SENSOR_DETECT is on, but unticking that in
+ * menuconfig leaves CONFIG_BOARD_LATE_INIT set. The strong definition wins
+ * whenever detection is built in.
+ */
+__weak int board_late_init(void)
+{
+    hailo15_select_board_dtb();
+
+    return 0;
+}
+
 int hailo15_scmi_check_version_match(void)
 {
     u32 fw_version, impl_version;

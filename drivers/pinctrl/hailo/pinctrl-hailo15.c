@@ -50,6 +50,19 @@ static int hailo15_get_pins_count(struct udevice *dev)
     return ARRAY_SIZE(hailo15_pins);
 }
 
+/*
+* The mode PADS_PINMUX actually holds for a pin set, read back from hardware.
+*/
+static uint32_t hailo15_get_pads_pinmux_mode(struct hailo_priv *priv,
+                                             enum h15_pin_set_value set_number)
+{
+    uint32_t data_reg = readl(priv->general_pads_config_base +
+                              GENERAL_PADS_CONFIG__PADS_PINMUX);
+
+    return (data_reg >> pads_pinmux_mode_shift_value[set_number]) &
+           pads_pinmux_mode_reg_mask_value[set_number];
+}
+
 static int hailo15_pinctrl_probe(struct udevice *dev)
 {
     struct hailo_priv *priv = dev_get_priv(dev);
@@ -82,7 +95,13 @@ static int hailo15_pinctrl_probe(struct udevice *dev)
         * Create a contiguous bitmask starting at bit position h15_pin_sets[i].modes_count and ending at position 0.
         */
         priv->pin_set_runtime_data[i].possible_modes = GENMASK(h15_pin_sets[i].modes_count, 0);
-        priv->pin_set_runtime_data[i].current_mode = 0;
+        /*
+        * Start from what the hardware holds -- the boot ROM or SCU firmware
+        * may have left a set in another mode. current_mode is only a record
+        * for get_pin_muxing(); set_mux() reads the register itself.
+        */
+        priv->pin_set_runtime_data[i].current_mode =
+            hailo15_get_pads_pinmux_mode(priv, i);
     }
 
     for (i = 0; i < H15_PINCTRL_PIN_COUNT; i++) {
@@ -383,14 +402,20 @@ static int hailo15_pinmux_group_set(struct udevice *dev,
         new_mode = __builtin_ctz(pin_set_runtime_data->possible_modes);
 
         /*
-        * Check if the driver need to update the pinmux mode for that set.
+        * Update the pinmux mode for that set unless the hardware already
+        * holds it. Compared against the register rather than against what
+        * this driver last wrote: PADS_PINMUX is shared, and board code that
+        * muxes a pad directly -- as the camera code does for i2c_2, having no
+        * pinmux path in U-Boot's DT -- would otherwise make a stale shadow
+        * skip a write that is genuinely needed, leaving the pad on someone
+        * else's function with nothing reported.
         */
-        if (new_mode != pin_set_runtime_data->current_mode) {
-            pin_set_runtime_data->current_mode = new_mode;
-            hailo15_set_pads_pinmux_mode(
-                priv, grp->set_modes[i].set,
-                pin_set_runtime_data->current_mode);
+        if (new_mode != hailo15_get_pads_pinmux_mode(priv,
+                                                     grp->set_modes[i].set)) {
+            hailo15_set_pads_pinmux_mode(priv, grp->set_modes[i].set,
+                                         new_mode);
         }
+        pin_set_runtime_data->current_mode = new_mode;
     }
 
     return 0;

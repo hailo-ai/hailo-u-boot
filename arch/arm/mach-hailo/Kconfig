@@ -417,6 +417,75 @@ config TARGET_HAILO12L_MAPLE
 	bool "Hailo12L Maple"
 	select MACH_HAILO12L
 
+config HAILO_SENSOR_DETECT
+	bool "Detect the fitted camera sensor at boot"
+	depends on MACH_HAILO15 || MACH_HAILO15L
+	select BOARD_LATE_INIT
+	help
+	  Identify the camera module fitted to each camera port, and point
+	  ${dtb_overlays} at the matching per-sensor DT overlays, so the
+	  kernel receives a device tree naming the correct sensor instead of
+	  a list of candidates to probe. Per port:
+	    a. probe the known i2c addresses to find where the module answers
+	    b. detect the sensor by reading its Sony Type-ID registers
+	       (or, register fingerprint for parts without a Type-ID)
+
+	  The camera ports of every board that enables this are described in
+	  hailo15_sensor_boards.c, which also supplies the
+	  board_late_init() that runs detection on them.
+
+	  Which boards can use it is decided there and not here. The #if
+	  that opens that file gives each board its reset pins and bus
+	  numbers, and a target it has no case for, stops the build with a
+	  message saying what to add. A new board needs a case there, plus its
+	  overlays shipped from meta-hailo-imaging: an overlay name missing
+	  from the fitImage fails bootm.
+
+	  Two boards are deliberately not described. The H15 EVBs cannot
+	  work: the sensor's power and reset sit behind a CPLD that U-Boot
+	  cannot program (i2c 0x11 does not even read, "Error reading the
+	  chip: -121"), so the module never answers. The H15L EVB has no
+	  such CPLD and would probably work, but wasn't tested.
+	  Their defconfigs leave this off, and turning it on
+	  stops at the build error above rather than at a dead camera.
+
+	  ${sensor_override}:
+	    "none"   - disable detection at runtime; no bus or GPIO access
+	    "legacy" - apply the legacy (no detection) candidate-list
+	               overlay; no bus or GPIO access
+	    "imx678" - any sensor name, taken verbatim: force that sensor's
+	               overlay, probing only for its i2c address
+	    unset    - detect (default)
+
+	  ${sensor_link} - how many lanes each camera port is wired with, on a
+	  board whose links need describing (today only the H15L SBC, whose
+	  single D-PHY is split 2+2 across the two bridges). It describes the
+	  WIRING, not how many cameras are fitted: a lone camera on a split
+	  board still runs on two lanes.
+	    "auto"  - infer it, the default: a sensor found on a port above 0
+	              proves the split is wired
+	    "2lane" - force the split wiring on
+	    "4lane" - refuse it; every port gets all four lanes
+
+	  MUST BE SET BY HAND in one case: an H15L SBC that IS dual-kit wired
+	  but has only port 0 fitted. Nothing on the bus distinguishes it from
+	  an unwired board, so "auto" leaves the split off and the camera comes
+	  up described as 4-lane on 2-lane wiring. There is no way to detect
+	  this; the board has to be told:
+	    setenv sensor_link 2lane; saveenv
+	  or, from Linux:
+	    fw_setenv sensor_link 2lane
+
+	  Adding a new sensor needs no U-Boot code. The overlay name is
+	  constructed from the sensor's name, so once the overlay ships in
+	  the fitImage, either:
+	    - add the name to the built-in list (sensor_models_builtin in
+	      hailo15_sensor_detect.c; one string, next U-Boot build), or
+	    - on an already-deployed bootloader, without reflashing:
+	        setenv sensor0_models_extra "imx828"; saveenv
+	  A new i2c address goes in ${sensor0_addrs_extra} the same way.
+	  Both variables extend the built-in lists; they never replace them.
+
 source "board/hailo/hailo15-vp/Kconfig"
 source "board/hailo/hailo15-ginger-soc/Kconfig"
 source "board/hailo/hailo15-ginger-soc-sdio0/Kconfig"

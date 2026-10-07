@@ -9,7 +9,7 @@
     ddr_config {
         ddr_patches {
             NT6AN512T32AV_regconfig_2GB_LP4 {
-                reg_config_version = "2.5";
+                reg_config_version = "2.6";
                 mr0 = <0x38>;
                 mr5 = <0x05>;
                 mr6 = <0x0>;
@@ -39,6 +39,8 @@
 
                 DDR_PI_registers = <
                     73 0x00080100    //  73: RESERVED:RW_D:24:4:=0x00 PI_TCCD:RW:16:5:=0x08 PI_ROW_DIFF:RW:8:3:=0x00 PI_BANK_DIFF:RW:0:2:=0x00
+                    161 0x05010000    //  161: PI_CATR:RW:24:4:=0x00 PI_PARALLEL_CALVL_EN:RW:16:1:=0x01 RESERVED:RW:8:5:=0x00 PI_FREQ_SEL_FROM_REGIF:RW:0:1:=0x00
+                    162 0x00000001    //  162: PI_NOTCARE_MC_INIT_START:RW:24:1:=0x00 PI_DISCONNECT_MC:RW:16:1:=0x00 PI_MASK_INIT_COMPLETE:RW:8:1:=0x00 PI_NO_CATR_READ:RW:0:1:=0x00
                     169 0x00094812    //  169: PI_TRFC_F0:RW:16:10:=0x0013 PI_CASLAT_LIN_F2:RW:8:7:=0x48 PI_WRLAT_F2:RW:0:7:=0x12
                     171 0x00000120    //  171: PI_TRFC_F1:RW:0:10:=0x0260
                     173 0x00000180    //  173: PI_TRFC_F2:RW:0:10:=0x032b

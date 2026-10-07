@@ -69,3 +69,12 @@
 &i2c_1 {
     status = "okay";
 };
+
+/* Camera port 1's bus. Only U-Boot's sensor detection needs it here; Linux
+ * enables it from its own DT either way.
+ */
+#ifdef CONFIG_HAILO_SENSOR_DETECT
+&i2c_2 {
+    status = "okay";
+};
+#endif
